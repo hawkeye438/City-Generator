@@ -1,0 +1,5 @@
+﻿  Main.cpp
+LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
+Main.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' specification
+  COMP371.vcxproj -> C:\Users\chan\Desktop\COMP371\Debug\COMP371.exe
+  COMP371.vcxproj -> C:\Users\chan\Desktop\COMP371\Debug\COMP371.pdb (Full PDB)
