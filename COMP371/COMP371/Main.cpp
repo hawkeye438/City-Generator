@@ -16,6 +16,11 @@ using namespace std;
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 800;
 
+// Camera Orientation
+float rotate_x = 0.0f;//for rotating around x axis
+float rotate_y = 0.0f;//for rotating around y axis
+float rotate_z = 0.0f;//for rotating around z axis (if needed)
+
 //Look at vectors
 glm::vec3 eye(0.0f, 0.0f, 3.0f);
 glm::vec3 center(0.0f, 0.0f, -1.0f);
@@ -26,7 +31,48 @@ glm::vec3 triangle_scale;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	std::cout << key << std::endl;	
+	//Camera Controls
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {//Forward
+		eye += 0.05f * center;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {//Backward
+		eye -= 0.05f * center;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {//left
+		eye -= glm::normalize(glm::cross(center, up)) * 0.05f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {//right
+		eye += glm::normalize(glm::cross(center, up)) * 0.05f;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {//Up
+		eye.y += 0.05f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {//Down
+		eye.y -= 0.05f;
+	}
+
+	//World Orientation
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		rotate_y += 1.0f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		rotate_y -= 1.0f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		rotate_x += 1.0f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		rotate_x -= 1.0f;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+		rotate_z += 1.0f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+		rotate_z -= 1.0f;
+	}
+
 }
 
 int main()
@@ -133,7 +179,10 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 view_matrix;
-		view_matrix = glm::lookAt(eye, center, up);
+		view_matrix = glm::lookAt(eye, eye + center, up);
+		view_matrix = glm::rotate(view_matrix, glm::radians(rotate_x), glm::vec3(1.0f, 0.0f, 0.0f));//rotate the camera along x axis
+		view_matrix = glm::rotate(view_matrix, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));//rotate the camera along y axis
+		view_matrix = glm::rotate(view_matrix, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));//rotate the camera along z axis
 
 		glm::mat4 model_matrix;
 		model_matrix = glm::scale(model_matrix, triangle_scale);
