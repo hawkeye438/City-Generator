@@ -6,9 +6,12 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <vector>
 #include "glm.hpp"
 #include "gtc/matrix_transform.hpp"
 #include "gtc/type_ptr.hpp"
+#include "..\soil\SOIL.h"
+
 #include "Classes/Shader.h"
 
 using namespace std;
@@ -73,6 +76,35 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		rotate_z -= 1.0f;
 	}
 
+}
+
+GLuint loadCubemap(vector<const GLchar*> faces)
+{
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+
+	int width, height;
+	unsigned char* image;
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	for (GLuint i = 0; i < faces.size(); i++)
+	{
+		image = SOIL_load_image(faces[i], &width, &height, 0, SOIL_LOAD_RGB);
+		glTexImage2D(
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
+			GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image
+		);
+
+		SOIL_free_image_data(image); //free resources
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	return textureID;
 }
 
 int main()
@@ -159,6 +191,75 @@ int main()
 
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 
+	//skybox
+	float skybox_vertices[] = {
+		// positions          
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f
+	};
+
+	GLuint skybox_VAO, skybox_VBO;
+	glGenVertexArrays(1, &skybox_VAO);
+	glGenBuffers(1, &skybox_VBO);
+	glBindVertexArray(skybox_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skybox_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_vertices), &skybox_vertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+	//skybox texture from https://93i.de/p/free-skybox-texture-set/
+	vector<const GLchar*> faces;
+	faces.push_back("Fullmoon/right.png");
+	faces.push_back("Fullmoon/left.png");
+	faces.push_back("Fullmoon/top.png");
+	faces.push_back("Fullmoon/bottom.png");
+	faces.push_back("Fullmoon/back.png");
+	faces.push_back("Fullmoon/front.png");
+
+	glActiveTexture(GL_TEXTURE0);
+	GLuint cubemapTexture = loadCubemap(faces);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "skybox"), 0); //sky box should read from texture unit 0
+
 	triangle_scale = glm::vec3(1.0f);
 	glm::mat4 projection_matrix;
 	projection_matrix = glm::perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
@@ -166,6 +267,7 @@ int main()
 	GLuint projectionLoc = glGetUniformLocation(shader_program.getShaderId(), "projection_matrix");
 	GLuint viewMatrixLoc = glGetUniformLocation(shader_program.getShaderId(), "view_matrix");
 	GLuint transformLoc = glGetUniformLocation(shader_program.getShaderId(), "model_matrix");
+	GLuint drawing_skybox_id = glGetUniformLocation(shader_program.getShaderId(), "drawingSkybox");
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
@@ -191,7 +293,21 @@ int main()
 		glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 
+		//render skybox
+		glBindVertexArray(skybox_VAO);
+
+		glm::mat4 skybox_view = glm::mat4(glm::mat3(view_matrix)); //remove the translation data
+		glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(skybox_view));
+
+		glDepthMask(GL_FALSE);
+		glUniform1i(drawing_skybox_id, 1); //set the uniform boolean true
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glUniform1i(drawing_skybox_id, 0); //set the uniform boolean false
+		glDepthMask(GL_TRUE);
+
+		//render square
 		glBindVertexArray(VAO);
+		glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 		glDrawElements(GL_TRIANGLES, indices_size, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
