@@ -10,7 +10,7 @@
 #include "glm.hpp"
 #include "gtc/matrix_transform.hpp"
 #include "gtc/type_ptr.hpp"
-
+#include "objloader.hpp"
 #include "Classes/Shader.h"
 #include "Classes/Skybox.h"
 
@@ -127,40 +127,62 @@ int main()
 	//configure global opengl state
 	glEnable(GL_DEPTH_TEST);
 
-	float vertices[] = {//vertices for square
-		0.5f,  0.5f, 0.0f,  // top right
-		0.5f, -0.5f, 0.0f,  // bottom right
-		-0.5f, -0.5f, 0.0f,  // bottom left
-		-0.5f,  0.5f, 0.0f   // top left 
-	};
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec3> normals;
+	std::vector<glm::vec2> UVs;
+	loadOBJ("cube.obj", vertices, normals, UVs);
 
-	unsigned int indices[] = { 
-		0, 1, 3,   // first triangle
-		1, 2, 3    // second triangle
-	};
-
-	int indices_size = sizeof(indices) / sizeof(indices[0]);
-
-	GLuint VAO, VBO, EBO;
+	GLuint VAO, vertices_VBO, normals_VBO, UVs_VBO;
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-	
+	glGenBuffers(1, &vertices_VBO);
+
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
 	glBindVertexArray(VAO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glBindBuffer(GL_ARRAY_BUFFER, vertices_VBO);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices.front(), GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 	glEnableVertexAttribArray(0);
+
+	glGenBuffers(1, &normals_VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, normals_VBO);
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals.front(), GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+	glEnableVertexAttribArray(1);
+
+	glGenBuffers(1, &UVs_VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, UVs_VBO);
+	glBufferData(GL_ARRAY_BUFFER, UVs.size() * sizeof(glm::vec2), &UVs.front(), GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+
+	//cube texturizing
+	glActiveTexture(GL_TEXTURE1); //select texture unit 1
+	GLuint cube_texture;
+	glGenTextures(1, &cube_texture);
+	glBindTexture(GL_TEXTURE_2D, cube_texture); //bind this texture to the currently bound texture unit
+
+	// Set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
+	// Set texture wrapping to GL_REPEAT (usually basic wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	// Set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// Load image, create texture and generate mipmaps
+	int cube_texture_width, cube_texture_height;
+	unsigned char* cube_image = SOIL_load_image("brick.jpg", &cube_texture_width, &cube_texture_height, 0, SOIL_LOAD_RGB);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, cube_texture_width, cube_texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, cube_image);
+	SOIL_free_image_data(cube_image); //free resources
+
+	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "cubeTexture"), 1); //cubeTexture should read from texture unit 1
 
 	//skybox
 	//skybox texture from https://93i.de/p/free-skybox-texture-set/
@@ -204,10 +226,11 @@ int main()
 		//skybox
 		skybox.render(view_matrix, viewMatrixLoc, drawing_skybox_id);
 
-		//render square
+		//Draw the textured cube
 		glBindVertexArray(VAO);
 		glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-		glDrawElements(GL_TRIANGLES, indices_size, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+
 		glBindVertexArray(0);
 
 		// Swap the screen buffers
