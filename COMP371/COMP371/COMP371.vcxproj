@@ -117,12 +117,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Classes\Shader.h" />
+    <ClInclude Include="Classes\Skybox.h" />
+    <ClInclude Include="objloader.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Classes\Shader.cpp" />
+    <ClCompile Include="Classes\Skybox.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="objloader.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
