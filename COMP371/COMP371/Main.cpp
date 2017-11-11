@@ -13,6 +13,7 @@
 #include "objloader.hpp"
 #include "Classes/Shader.h"
 #include "Classes/Skybox.h"
+#include "Classes/Texture.h"
 
 using namespace std;
 
@@ -158,61 +159,10 @@ int main()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	//example multiple instance along x and z axis
-	//set up translation offset
-	vector<glm::vec3> translations;
-	float offset = 3.0f;
-
-	//this example, 2 cubes by 2 cubes
-	for (int y = 0; y < 2; y++)
-	{
-		for (int x = 0; x < 2; x++)
-		{
-			glm::vec3 translation;
-			translation.x = (float) y * offset;
-			translation.y = 0.0f;
-			translation.z = (float)-x * offset;
-			translations.push_back(translation);
-		}
-	}
-	//bind the information, note make sure to bind instance array before calling glBondVertexArray(0)
-	GLuint instance_VBO;
-	glGenBuffers(1, &instance_VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, instance_VBO);
-	//sizeof vec3 * number of copies
-	glBufferData(GL_ARRAY_BUFFER, translations.size() * sizeof(glm::vec3), translations.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	//pass the offset information to vertex shader at location = 3
-	glEnableVertexAttribArray(3);
-	glBindBuffer(GL_ARRAY_BUFFER, instance_VBO);
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glVertexAttribDivisor(3, 1);//3 is location, 1 says it updates per instance rather than per value
-
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 
 	//cube texturizing
-	glActiveTexture(GL_TEXTURE1); //select texture unit 1
-	GLuint cube_texture;
-	glGenTextures(1, &cube_texture);
-	glBindTexture(GL_TEXTURE_2D, cube_texture); //bind this texture to the currently bound texture unit
-
-	// Set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-
-	// Set texture wrapping to GL_REPEAT (usually basic wrapping method)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	// Set texture filtering parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// Load image, create texture and generate mipmaps
-	int cube_texture_width, cube_texture_height;
-	unsigned char* cube_image = SOIL_load_image("brick.jpg", &cube_texture_width, &cube_texture_height, 0, SOIL_LOAD_RGB);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, cube_texture_width, cube_texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, cube_image);
-	SOIL_free_image_data(cube_image); //free resources
+	Texture::loadTexture(1, "brick.jpg");//texture1
 
 	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "cubeTexture"), 1); //cubeTexture should read from texture unit 1
 
@@ -261,7 +211,7 @@ int main()
 		//Draw the textured cube and instances
 		glBindVertexArray(VAO);
 		glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-		glDrawArraysInstanced(GL_TRIANGLES, 0, vertices.size(), translations.size());
+		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
 		glBindVertexArray(0);
 
