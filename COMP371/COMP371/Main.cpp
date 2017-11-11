@@ -163,8 +163,9 @@ int main()
 
 	//cube texturizing
 	Texture::loadTexture(1, "brick.jpg");//texture1
-
-	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "cubeTexture"), 1); //cubeTexture should read from texture unit 1
+	Texture::loadTexture(2, "building.jpg");//texture1
+	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[0]"), 1); //cubeTexture should read from texture unit 1, skybox is 0
+	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[1]"), 2); //cubeTexture should read from texture unit 2, skybox is 0
 
 	//skybox
 	//skybox texture from https://93i.de/p/free-skybox-texture-set/
@@ -180,6 +181,9 @@ int main()
 	GLuint viewMatrixLoc = glGetUniformLocation(shader_program.getShaderId(), "view_matrix");
 	GLuint transformLoc = glGetUniformLocation(shader_program.getShaderId(), "model_matrix");
 	GLuint drawing_skybox_id = glGetUniformLocation(shader_program.getShaderId(), "drawingSkybox");
+	GLuint texture_option = glGetUniformLocation(shader_program.getShaderId(), "textureOption");
+	GLuint texture_Matrix = glGetUniformLocation(shader_program.getShaderId(), "textureMatrix");
+	GLuint scale_UV = glGetUniformLocation(shader_program.getShaderId(), "scaleUV");
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
@@ -210,9 +214,24 @@ int main()
 
 		//Draw the textured cube and instances
 		glBindVertexArray(VAO);
+
 		glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+		glUniform1i(texture_option, 1);
 		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
+		//draw a second cube with different texture and scale
+		glm::mat4 cube;
+		cube = glm::scale(cube, glm::vec3(1.0f, 2.0f, 1.0f));
+		cube = glm::translate(cube, glm::vec3(3.0f,0.0f,0.0f));
+		
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(cube));
+		//for UV scaling, in order to have repeated texture and not stretch texture
+		glUniformMatrix4fv(texture_Matrix, 1, GL_FALSE, glm::value_ptr(cube));
+		
+		glUniform1i(texture_option, 2);
+		glUniform1i(scale_UV, 1);//true
+		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+		glUniform1i(scale_UV, 0);//false
 		glBindVertexArray(0);
 
 		// Swap the screen buffers
