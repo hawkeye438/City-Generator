@@ -14,6 +14,7 @@
 #include "Classes/Shader.h"
 #include "Classes/Skybox.h"
 #include "Classes/Texture.h"
+#include "Classes/Terrain.h"
 
 using namespace std;
 
@@ -161,11 +162,18 @@ int main()
 
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 
-	//cube texturizing
+	//Terrain
+	Terrain terrain;
+	terrain.loadTerrain(4,4);//width and heeight of terrain
+
+	//texturizing
 	Texture::loadTexture(1, "brick.jpg");//texture1
-	Texture::loadTexture(2, "building.jpg");//texture1
+	Texture::loadTexture(2, "building.jpg");//texture2
+	Texture::loadTexture(3, "grass.jpg");//texture3
+
 	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[0]"), 1); //cubeTexture should read from texture unit 1, skybox is 0
 	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[1]"), 2); //cubeTexture should read from texture unit 2, skybox is 0
+	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[2]"), 3); //cubeTexture should read from texture unit 3, skybox is 0
 
 	//skybox
 	//skybox texture from https://93i.de/p/free-skybox-texture-set/
@@ -212,17 +220,24 @@ int main()
 		//skybox
 		skybox.render(view_matrix, viewMatrixLoc, drawing_skybox_id);
 
+		//set view back to normal
+		glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+
+		//Terrain
+		glUniform1i(texture_option, 3);
+		terrain.render();
+		
 		//Draw the textured cube and instances
 		glBindVertexArray(VAO);
-
-		glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+		glm::mat4 cube;
+		cube = glm::translate(cube, glm::vec3(4.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(cube));
 		glUniform1i(texture_option, 1);
 		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
 		//draw a second cube with different texture and scale
-		glm::mat4 cube;
 		cube = glm::scale(cube, glm::vec3(1.0f, 2.0f, 1.0f));
-		cube = glm::translate(cube, glm::vec3(3.0f,0.0f,0.0f));
+		cube = glm::translate(cube, glm::vec3(4.0f,0.0f,0.0f));
 		
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(cube));
 		//for UV scaling, in order to have repeated texture and not stretch texture

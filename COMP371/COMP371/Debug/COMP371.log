@@ -1,4 +1,6 @@
 ﻿  Main.cpp
+  Terrain.cpp
+  Generating Code...
 LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
 Shader.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' specification
 soil.lib(image_DXT.obj) : warning LNK4099: PDB 'SOIL.pdb' was not found with 'soil.lib(image_DXT.obj)' or at 'C:\zChanStuff\channystuff\Pandastuff\Chan school 2\s9-Comp371\Project_git\City-Generator\COMP371\Debug\SOIL.pdb'; linking object as if no debug info

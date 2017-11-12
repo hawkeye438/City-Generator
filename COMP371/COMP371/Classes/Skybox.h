@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SKYBOX_h
-#define SKYBOX_h
+#ifndef SKYBOX_H
+#define SKYBOX_H
 
 #include "..\glew\glew.h"	// include GL Extension Wrangler
 #include "glm.hpp"

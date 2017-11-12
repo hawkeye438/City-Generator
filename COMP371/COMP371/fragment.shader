@@ -5,7 +5,7 @@ in vec2 outUV;//cube uv for texture rendering
 
 out vec4 color;
 
-uniform sampler2D textureNumber[2];//multiple texture support, simply change array size to numnber of texture you want
+uniform sampler2D textureNumber[3];//multiple texture support, simply change array size to numnber of texture you want
 uniform samplerCube skybox; //skybox sampling
 
 uniform bool drawingSkybox;
@@ -38,6 +38,14 @@ void main()
 		}
 		else {
 			color = texture(textureNumber[1], outUV);
+		}
+	}
+	else if (textureOption == 3) {
+		if (scaleUV) {
+			color = texture(textureNumber[2], lastUV);
+		}
+		else {
+			color = texture(textureNumber[2], outUV);
 		}
 	}
 } 
