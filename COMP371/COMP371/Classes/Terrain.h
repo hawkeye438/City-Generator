@@ -15,12 +15,12 @@ class Terrain
 {
 	GLuint mesh_VBO, mesh_VAO, mesh_EBO, mesh_UV;
 	int number_of_indices;
-	
+	int mesh_width, mesh_height;
 public:
 	Terrain();
 	~Terrain();
 
 	void loadTerrain(int width, int height);
-	void render();
+	void render(GLuint transform_loc);
 };
 #endif

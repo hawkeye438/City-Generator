@@ -225,12 +225,12 @@ int main()
 
 		//Terrain
 		glUniform1i(texture_option, 3);
-		terrain.render();
+		terrain.render(transformLoc);
 		
 		//Draw the textured cube and instances
 		glBindVertexArray(VAO);
 		glm::mat4 cube;
-		cube = glm::translate(cube, glm::vec3(4.0f, 0.0f, 0.0f));
+		cube = glm::translate(cube, glm::vec3(0.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(cube));
 		glUniform1i(texture_option, 1);
 		glDrawArrays(GL_TRIANGLES, 0, vertices.size());

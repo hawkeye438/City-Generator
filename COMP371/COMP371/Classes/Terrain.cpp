@@ -4,6 +4,8 @@ Terrain::Terrain() {}
 Terrain::~Terrain() {}
 
 void Terrain::loadTerrain(int width, int height) {
+	mesh_width = width;
+	mesh_height = height;
 	vector<glm::vec2> UVs;
 	std::vector<glm::vec3> meshPositions;
 	//UV is based on number of vertices
@@ -68,7 +70,11 @@ void Terrain::loadTerrain(int width, int height) {
 	number_of_indices = indices_space.size();
 }
 
-void Terrain::render() {
+void Terrain::render(GLuint transform_loc) {
+	glm::mat4 tran;
+	tran = glm::translate(tran, glm::vec3(-0.5 * (mesh_width -1), 0.0f, -0.5 * (mesh_height - 1)));//center the grid by origin for any 
+	glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm::value_ptr(tran));
+	
 	glBindVertexArray(mesh_VAO);
 	glDrawElements(GL_TRIANGLES, number_of_indices, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
