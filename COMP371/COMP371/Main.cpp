@@ -16,118 +16,16 @@
 #include "Classes/Texture.h"
 #include "Classes/Terrain.h"
 #include "Classes/BoundingBox.h"
+#include "Classes/Camera.h"
+#include "Classes/MyWindow.h"
 
 using namespace std;
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 800;
 
-// Camera Orientation
-float rotate_x = 0.0f;//for rotating around x axis
-float rotate_y = 0.0f;//for rotating around y axis
-float rotate_z = 0.0f;//for rotating around z axis (if needed)
-
-//Look at vectors
-glm::vec3 eye(0.0f, 0.0f, 3.0f);
-glm::vec3 center(0.0f, 0.0f, -1.0f);
-glm::vec3 up(0.0f, 1.0f, 0.0f);
-
 //scaling
 glm::vec3 triangle_scale;
-
-//testing bouding box
-glm::vec3 min, max;
-vector<BoundingBox*> boxes;
-
-//testing collision of camera point against object bounding box
-void check_collision(glm::vec3 point, float offset, int value) {
-	for (int i = 0; i < boxes.size(); i++) {
-		if (boxes[i]->intersect(point, offset)) {
-			cout << "intersecting working" << endl;
-			switch (value) {
-				case 1: eye -= 0.1f * center;
-					break;
-				case 2: eye += 0.1f * center;
-					break;
-				case 3: eye += glm::normalize(glm::cross(center, up)) * 0.1f;
-					break;
-				case 4: eye -= glm::normalize(glm::cross(center, up)) * 0.1f;
-					break;
-				case 5: eye.y -= 0.1f;
-					break;
-				case 6: eye.y += 0.1f;
-					break;
-			}
-			cout << "eye coord" << endl;
-			cout << eye.x << "," << eye.y << "," << eye.z << endl;	
-			cout << "object bounds" << endl;
-			cout << min.x << "," << max.x << endl;
-			cout << min.y << "," << max.y << endl;
-			cout << min.z << "," << max.z << endl;
-		}
-	}
-}
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
-{
-	float offset = 0.5f;
-	int value = 0;
-	//Camera Controls
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {//Forward
-		eye += 0.1f * center;
-		value = 1;
-		check_collision(eye, offset, value);
-	
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {//Backward
-		eye -= 0.1f * center;
-		value = 2;
-		check_collision(eye, offset, value);
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {//left
-		eye -= glm::normalize(glm::cross(center, up)) * 0.1f;
-		value = 3;
-		check_collision(eye, offset, value);
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {//right
-		eye += glm::normalize(glm::cross(center, up)) * 0.1f;
-		value = 4;
-		check_collision(eye, offset, value);
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {//Up
-		eye.y += 0.1f;
-		value = 5;
-		check_collision(eye, offset, value);
-	}
-	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {//Down
-		eye.y -= 0.05f;
-		value = 6;
-		check_collision(eye, offset, value);
-	}
-
-	//World Orientation
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		rotate_y += 1.0f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		rotate_y -= 1.0f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		rotate_x += 1.0f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		rotate_x -= 1.0f;
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-		rotate_z += 1.0f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-		rotate_z -= 1.0f;
-	}
-
-}
 
 int main()
 {
@@ -148,8 +46,6 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
-	// Set the required callback functions
-	glfwSetKeyCallback(window, key_callback);
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
 	glewExperimental = GL_TRUE;
@@ -213,6 +109,9 @@ int main()
 
 	//Testing bounding box
 	//min max for cube
+	glm::vec3 min, max;
+	vector<BoundingBox*> boxes;
+
 	GLfloat
 		min_x, max_x,
 		min_y, max_y,
@@ -274,8 +173,6 @@ int main()
 		"Fullmoon/bottom.png", "Fullmoon/back.png", "Fullmoon/front.png", shader_program.getShaderId());
 	
 	triangle_scale = glm::vec3(1.0f);
-	glm::mat4 projection_matrix;
-	projection_matrix = glm::perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
 
 	GLuint projectionLoc = glGetUniformLocation(shader_program.getShaderId(), "projection_matrix");
 	GLuint viewMatrixLoc = glGetUniformLocation(shader_program.getShaderId(), "view_matrix");
@@ -284,7 +181,26 @@ int main()
 	GLuint texture_option = glGetUniformLocation(shader_program.getShaderId(), "textureOption");
 	GLuint texture_Matrix = glGetUniformLocation(shader_program.getShaderId(), "textureMatrix");
 	GLuint scale_UV = glGetUniformLocation(shader_program.getShaderId(), "scaleUV");
+	
+	//Camera set up
+	glm::vec3 eye(0.0f, 0.0f, 3.0f);
+	glm::vec3 center(0.0f, 0.0f, -1.0f);
+	glm::vec3 up(0.0f, 1.0f, 0.0f);
+	Camera* camera = new Camera(eye, center, up, boxes);//boxes to test camera collision with world objects
+	camera->setPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f, projectionLoc);
+	// Set the required callback functions
+	MyWindow* myWindow = new MyWindow(camera);
+	glfwSetWindowUserPointer(window, myWindow);
+	auto func = [](GLFWwindow* window, int key, int scancode, int action, int mode)
+	{
+		static_cast<MyWindow*>(glfwGetWindowUserPointer(window))->cameraControls(window, key,scancode, action, mode);
+	};
 
+	//*NOTE-glfw cannot take class methods as callback unless it is static (due to glfw base on C)
+	//*NOTE-from GLFW Faq "use static methods or regular functions as callbacks, store the pointer to the object you wish to call in some location reachable from the callbacks and use it to call methods on your object"
+	//set key call back
+	glfwSetKeyCallback(window, func);
+	
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -297,18 +213,14 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 view_matrix;
-		view_matrix = glm::lookAt(eye, eye + center, up);
-		view_matrix = glm::rotate(view_matrix, glm::radians(rotate_x), glm::vec3(1.0f, 0.0f, 0.0f));//rotate the camera along x axis
-		view_matrix = glm::rotate(view_matrix, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));//rotate the camera along y axis
-		view_matrix = glm::rotate(view_matrix, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));//rotate the camera along z axis
+		camera->setLookAt(view_matrix, viewMatrixLoc);
+		camera->rotateCamera(view_matrix, viewMatrixLoc);
 
 		glm::mat4 model_matrix;
 		model_matrix = glm::scale(model_matrix, triangle_scale);
 
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
-		glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
-
+		
 		//skybox
 		skybox.render(view_matrix, viewMatrixLoc, drawing_skybox_id);
 
