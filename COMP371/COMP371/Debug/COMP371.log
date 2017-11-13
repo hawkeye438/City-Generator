@@ -1,5 +1,5 @@
 ﻿  Main.cpp
-c:\zchanstuff\channystuff\pandastuff\chan school 2\s9-comp371\project_git\city-generator\comp371\comp371\main.cpp(124): warning C4018: '<': signed/unsigned mismatch
+c:\zchanstuff\channystuff\pandastuff\chan school 2\s9-comp371\project_git\city-generator\comp371\comp371\main.cpp(122): warning C4018: '<': signed/unsigned mismatch
   Camera.cpp
 c:\zchanstuff\channystuff\pandastuff\chan school 2\s9-comp371\project_git\city-generator\comp371\comp371\classes\camera.cpp(24): warning C4018: '<': signed/unsigned mismatch
   Generating Code...

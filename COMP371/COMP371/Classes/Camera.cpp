@@ -57,33 +57,38 @@ void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, i
 		eye += 0.1f * center;
 		value = 1;
 		checkCollision(eye, offset, value);
-
+		checkLoopPos();
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {//Backward
 		eye -= 0.1f * center;
 		value = 2;
 		checkCollision(eye, offset, value);
+		checkLoopPos();
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {//left
 		eye -= glm::normalize(glm::cross(center, up)) * 0.1f;
 		value = 3;
 		checkCollision(eye, offset, value);
+		checkLoopPos();
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {//right
 		eye += glm::normalize(glm::cross(center, up)) * 0.1f;
 		value = 4;
 		checkCollision(eye, offset, value);
+		checkLoopPos();
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {//Up
 		eye.y += 0.1f;
 		value = 5;
 		checkCollision(eye, offset, value);
+		checkLoopPos();
 	}
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {//Down
 		eye.y -= 0.05f;
 		value = 6;
 		checkCollision(eye, offset, value);
+		checkLoopPos();
 	}
 
 	//World Orientation
@@ -105,5 +110,30 @@ void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, i
 	}
 	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
 		rotate_z -= 1.0f;
+	}
+}
+
+//set min/max coordinates for x and z to loop back on itself
+void Camera::setLoopCoord(int x, int z) {
+	float offset = 1.0;//for testing
+	min_xd = -x + offset;
+	max_xd = x - offset;
+	min_zd = -z + offset;
+	max_zd = z - offset;
+}
+
+//restrict camera to an area and change position to opposite ends when passign min/max coordinates
+void Camera::checkLoopPos() {
+	if (eye.x < min_xd) {
+		eye.x = max_xd;
+	}
+	if (eye.x > max_xd) {
+		eye.x = min_xd;
+	}
+	if (eye.z < min_zd) {
+		eye.z = max_zd;
+	}
+	if (eye.z > max_zd) {
+		eye.z = min_zd;
 	}
 }

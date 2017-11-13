@@ -155,7 +155,7 @@ int main()
 
 	//Terrain
 	Terrain terrain;
-	terrain.loadTerrain(4,4);//width and heeight of terrain
+	terrain.loadTerrain(10,10);//width and heeight of terrain
 
 	//texturizing
 	Texture::loadTexture(1, "brick.jpg");//texture1
@@ -188,6 +188,8 @@ int main()
 	glm::vec3 up(0.0f, 1.0f, 0.0f);
 	Camera* camera = new Camera(eye, center, up, boxes);//boxes to test camera collision with world objects
 	camera->setPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f, projectionLoc);
+	//set loop coord
+	camera->setLoopCoord(5, 5);//half the length and width of terrain
 	// Set the required callback functions
 	MyWindow* myWindow = new MyWindow(camera);
 	glfwSetWindowUserPointer(window, myWindow);

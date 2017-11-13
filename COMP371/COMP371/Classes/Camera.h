@@ -17,6 +17,7 @@ class Camera {
 	glm::vec3 eye, center, up;
 	float rotate_x, rotate_y, rotate_z;
 	vector<BoundingBox*> boxes;
+	float min_xd, max_xd, min_zd, max_zd;
 
 public:
 	Camera() {}
@@ -24,6 +25,10 @@ public:
 		rotate_x = 0.0f;
 		rotate_y = 0.0f;
 		rotate_z = 0.0f;
+		min_xd = 0.0f;
+		max_xd = 0.0f;
+		min_zd = 0.0f;
+		max_zd = 0.0f;
 	}
 	~Camera() {}
 
@@ -33,5 +38,8 @@ public:
 	
 	void checkCollision(glm::vec3 point, float offset, int value);
 	void cameraKeys(GLFWwindow* window, int key, int scancode, int action, int mode);
+	void setLoopCoord(int x, int z);
+	void checkLoopPos();
+
 };
 #endif
