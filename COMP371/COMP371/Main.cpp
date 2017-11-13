@@ -15,6 +15,7 @@
 #include "Classes/Skybox.h"
 #include "Classes/Texture.h"
 #include "Classes/Terrain.h"
+#include "Classes/BoundingBox.h"
 
 using namespace std;
 
@@ -34,27 +35,75 @@ glm::vec3 up(0.0f, 1.0f, 0.0f);
 //scaling
 glm::vec3 triangle_scale;
 
+//testing bouding box
+glm::vec3 min, max;
+vector<BoundingBox*> boxes;
+
+//testing collision of camera point against object bounding box
+void check_collision(glm::vec3 point, float offset, int value) {
+	for (int i = 0; i < boxes.size(); i++) {
+		if (boxes[i]->intersect(point, offset)) {
+			cout << "intersecting working" << endl;
+			switch (value) {
+				case 1: eye -= 0.1f * center;
+					break;
+				case 2: eye += 0.1f * center;
+					break;
+				case 3: eye += glm::normalize(glm::cross(center, up)) * 0.1f;
+					break;
+				case 4: eye -= glm::normalize(glm::cross(center, up)) * 0.1f;
+					break;
+				case 5: eye.y -= 0.1f;
+					break;
+				case 6: eye.y += 0.1f;
+					break;
+			}
+			cout << "eye coord" << endl;
+			cout << eye.x << "," << eye.y << "," << eye.z << endl;	
+			cout << "object bounds" << endl;
+			cout << min.x << "," << max.x << endl;
+			cout << min.y << "," << max.y << endl;
+			cout << min.z << "," << max.z << endl;
+		}
+	}
+}
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
+	float offset = 0.5f;
+	int value = 0;
 	//Camera Controls
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {//Forward
-		eye += 0.05f * center;
+		eye += 0.1f * center;
+		value = 1;
+		check_collision(eye, offset, value);
+	
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {//Backward
-		eye -= 0.05f * center;
+		eye -= 0.1f * center;
+		value = 2;
+		check_collision(eye, offset, value);
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {//left
-		eye -= glm::normalize(glm::cross(center, up)) * 0.05f;
+		eye -= glm::normalize(glm::cross(center, up)) * 0.1f;
+		value = 3;
+		check_collision(eye, offset, value);
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {//right
-		eye += glm::normalize(glm::cross(center, up)) * 0.05f;
+		eye += glm::normalize(glm::cross(center, up)) * 0.1f;
+		value = 4;
+		check_collision(eye, offset, value);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {//Up
-		eye.y += 0.05f;
+		eye.y += 0.1f;
+		value = 5;
+		check_collision(eye, offset, value);
 	}
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {//Down
 		eye.y -= 0.05f;
+		value = 6;
+		check_collision(eye, offset, value);
 	}
 
 	//World Orientation
@@ -161,6 +210,49 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+
+	//Testing bounding box
+	//min max for cube
+	GLfloat
+		min_x, max_x,
+		min_y, max_y,
+		min_z, max_z;
+	min_x = max_x = vertices[0].x;
+	min_y = max_y = vertices[0].y;
+	min_z = max_z = vertices[0].z;
+	for (int i = 0; i < vertices.size(); i++) {
+		if (vertices[i].x < min_x) min_x = vertices[i].x;
+		if (vertices[i].x > max_x) max_x = vertices[i].x;
+		if (vertices[i].y < min_y) min_y = vertices[i].y;
+		if (vertices[i].y > max_y) max_y = vertices[i].y;
+		if (vertices[i].z < min_z) min_z = vertices[i].z;
+		if (vertices[i].z > max_z) max_z = vertices[i].z;
+	}
+	cout << min_x << "," << max_x << endl;
+	cout << min_y*2 << "," << max_y*2 << endl;
+	cout << min_z << "," << max_z << endl;
+	
+	//first cube with no transformation
+	min = glm::vec3(min_x, min_y, min_z);
+	max = glm::vec3(max_x, max_y, max_z);
+	
+	BoundingBox* temp = new BoundingBox(min, max);
+	boxes.push_back(temp);
+
+	//second cube with transformation to match ones done during render
+	//will have to store transformations in bounding box first before passing it to rendering
+	glm::mat4 cube;
+	cube = glm::scale(cube, glm::vec3(1.0f, 2.0f, 1.0f));
+	cube = glm::translate(cube, glm::vec3(4.0f, 0.0f, 0.0f));
+
+	glm::vec4 test(min, 1.0f);
+	glm::vec4 test2(max, 1.0f);
+	test = cube * test;
+	test2 = cube * test2;
+	min = glm::vec3(test);
+	max = glm::vec3(test2);
+	temp = new BoundingBox(min, max);
+	boxes.push_back(temp);
 
 	//Terrain
 	Terrain terrain;

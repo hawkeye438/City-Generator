@@ -116,6 +116,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Classes\BoundingBox.h" />
     <ClInclude Include="Classes\Shader.h" />
     <ClInclude Include="Classes\Skybox.h" />
     <ClInclude Include="Classes\Terrain.h" />
@@ -125,6 +126,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Classes\BoundingBox.cpp" />
     <ClCompile Include="Classes\Shader.cpp" />
     <ClCompile Include="Classes\Skybox.cpp" />
     <ClCompile Include="Classes\Terrain.cpp" />
