@@ -28,6 +28,7 @@
     <ClCompile Include="Classes\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Classes\CubePrimitive.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -63,6 +64,7 @@
     <ClInclude Include="Classes\Utility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Classes\CubePrimitive.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.shader" />
