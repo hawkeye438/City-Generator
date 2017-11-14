@@ -18,6 +18,7 @@
 #include "Classes/BoundingBox.h"
 #include "Classes/Camera.h"
 #include "Classes/MyWindow.h"
+#include "Classes/Utility.h"
 
 using namespace std;
 
@@ -116,19 +117,11 @@ int main()
 		min_x, max_x,
 		min_y, max_y,
 		min_z, max_z;
-	min_x = max_x = vertices[0].x;
-	min_y = max_y = vertices[0].y;
-	min_z = max_z = vertices[0].z;
-	for (int i = 0; i < vertices.size(); i++) {
-		if (vertices[i].x < min_x) min_x = vertices[i].x;
-		if (vertices[i].x > max_x) max_x = vertices[i].x;
-		if (vertices[i].y < min_y) min_y = vertices[i].y;
-		if (vertices[i].y > max_y) max_y = vertices[i].y;
-		if (vertices[i].z < min_z) min_z = vertices[i].z;
-		if (vertices[i].z > max_z) max_z = vertices[i].z;
-	}
+
+	Utility::setMinMaxVert(min_x, max_x, min_y, max_y, min_z, max_z, vertices);
+	
 	cout << min_x << "," << max_x << endl;
-	cout << min_y*2 << "," << max_y*2 << endl;
+	cout << min_y << "," << max_y << endl;
 	cout << min_z << "," << max_z << endl;
 	
 	//first cube with no transformation
