@@ -25,7 +25,7 @@
 using namespace std;
 
 // Window dimensions
-const GLuint WIDTH = 800, HEIGHT = 800;
+const GLuint WIDTH = 1024, HEIGHT = 1024;
 
 //scaling
 glm::vec3 triangle_scale;
@@ -104,6 +104,31 @@ int main()
 	Terrain road;
 	road.loadTerrain(4, 4);//width and heeight of terrain
 
+	//Shadows
+	//The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
+	unsigned int depthMapFBO;
+	glGenFramebuffers(1, &depthMapFBO);
+
+	// Depth texture. Slower than a depth buffer, but you can sample it later in your shader
+	GLuint depthMap;
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glViewport(0, 0, 1024, 1024);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
 	//texturizing
 	Texture::loadTexture(1, "brick.jpg");//texture1
 	Texture::loadTexture(2, "building.jpg");//texture2
@@ -114,6 +139,7 @@ int main()
 	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[1]"), 2); //cubeTexture should read from texture unit 2, skybox is 0
 	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[2]"), 3); //cubeTexture should read from texture unit 3, skybox is 0
 	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[3]"), 4); //cubeTexture should read from texture unit 4, skybox is 0
+	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "shadowMap"), 1);
 
 	//skybox
 	//skybox texture from https://93i.de/p/free-skybox-texture-set/
@@ -130,6 +156,9 @@ int main()
 	GLuint texture_option = glGetUniformLocation(shader_program.getShaderId(), "textureOption");
 	GLuint texture_matrix = glGetUniformLocation(shader_program.getShaderId(), "textureMatrix");
 	GLuint scale_UV = glGetUniformLocation(shader_program.getShaderId(), "scaleUV");
+	GLuint light_pos = glGetUniformLocation(shader_program.getShaderId(), "light_matrix");
+	GLuint view_pos = glGetUniformLocation(shader_program.getShaderId(), "viewPosition");
+	GLuint depthBiasMatrixID = glGetUniformLocation(shader_program.getShaderId(), "DepthBiasMVP");
 	
 	//Camera set up
 	glm::vec3 eye(0.0f, 0.5f, 3.0f);
@@ -162,6 +191,45 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		float time1 = glfwGetTime();
+		float movementz1 = sin(time1);
+		float movementx1 = cos(time1);
+
+		glm::vec3 light_pers(movementx1, 0.0, movementz1);
+
+		// Render scene from light's perspective
+		glm::vec3 lightInvDir = glm::vec3(-2.0f, 4.0f, -1.0f);
+
+		float near_plane = 1.0f, far_plane = 10.0f;
+		glm::mat4 depthProjectionMatrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		glm::mat4 depthViewMatrix = glm::lookAt(light_pers, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+		glm::mat4 depthModelMatrix = glm::mat4(1.0);
+		glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix;
+
+		glm::mat4 biasMatrix(
+			0.5, 0.0, 0.0, 0.0,
+			0.0, 0.5, 0.0, 0.0,
+			0.0, 0.0, 0.5, 0.0,
+			0.5, 0.5, 0.5, 1.0
+		);
+		glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
+		glUniformMatrix4fv(depthBiasMatrixID, 1, GL_FALSE, glm::value_ptr(depthBiasMVP));
+
+		glViewport(0, 0, 1024, 1024);
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, woodTexture);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// reset viewport
+		glViewport(0, 0, 1024, 1024);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// 2. render scene as normal using the generated depth/shadow map 
+		glViewport(0, 0, 1024, 1024);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		glm::mat4 view_matrix;
 		camera->setLookAt(view_matrix, viewMatrixLoc);
 
@@ -169,6 +237,24 @@ int main()
 		model_matrix = glm::scale(model_matrix, triangle_scale);
 
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
+
+		//Create light
+		glm::mat4 light;
+		float time = glfwGetTime();
+		float movementz = sin(time);
+		float movementx = cos(time);
+		light = glm::translate(light, glm::vec3(3 * movementx, 2.0f, 3 * movementz));
+		//Pass view position for specular lighting
+		glUniform3fv(view_pos, 1, glm::value_ptr(eye));
+		glUniformMatrix4fv(light_pos, 1, GL_FALSE, glm::value_ptr(light));
+
+		//Shadows
+		//Send our transformation to the currently bound shader,
+		//in the "MVP" uniform
+		glUniformMatrix4fv(depthBiasMatrixID, 1, GL_FALSE, glm::value_ptr(depthBiasMVP));
+		//glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
 		
 		//skybox
 		skybox.render(view_matrix, viewMatrixLoc, drawing_skybox_id);
