@@ -42,9 +42,41 @@ void Terrain::loadTerrain(int width, int height) {
 		}
 	}
 	
+	std::vector<glm::vec3> normalsPositions;
+	glm::vec3 v1;
+	glm::vec3 v2;
+	glm::vec3 normal;
+	//calculate normals
+	for (int i = 0; i < height - 1; i++) {//i is our z value
+		for (int j = 0; j < width - 1; j++) {//j is our x value from image
+	
+				//Get the vertices for v1,v2,v3 for both triangles
+				int t1v1 = j + (i*width);//top left
+				int t1v2 = j + (i*width) + width;//bottom-left
+				int t1v3 = j + (i*width) + width + 1;//bottom right
+				
+				int t2v1 = j + (i*width);//top left
+				int t2v2 = j + (i*width) + width + 1;//bottom right
+				int t2v3 = j + (i*width) + 1;//top-right
+
+				v1 = meshPositions[t1v2] - meshPositions[t1v1];
+				v2 = meshPositions[t1v3] - meshPositions[t1v1];
+				normal = glm::cross(v1,v2);
+				glm::normalize(normal);
+				normalsPositions.push_back(normal);
+
+				v1 = meshPositions[t2v2] - meshPositions[t2v1];
+				v2 = meshPositions[t2v3] - meshPositions[t2v1];
+				normal = glm::cross(v1, v2);
+				glm::normalize(normal);
+				normalsPositions.push_back(normal);
+		}
+	}
+	
 	glGenVertexArrays(1, &mesh_VAO);
 	glGenBuffers(1, &mesh_VBO);
 	glGenBuffers(1, &mesh_EBO);
+	glGenBuffers(1, &mesh_NORMAL);
 	glGenBuffers(1, &mesh_UV);
 
 	glBindVertexArray(mesh_VAO);
@@ -57,6 +89,11 @@ void Terrain::loadTerrain(int width, int height) {
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mesh_NORMAL);
+	glBufferData(GL_ARRAY_BUFFER, normalsPositions.size() * sizeof(glm::vec3), &normalsPositions.front(), GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+	glEnableVertexAttribArray(1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mesh_UV);
 	glBufferData(GL_ARRAY_BUFFER, UVs.size() * sizeof(glm::vec2), &UVs.front(), GL_STATIC_DRAW);

@@ -15,7 +15,7 @@ using namespace std;
 
 class Terrain
 {
-	GLuint mesh_VBO, mesh_VAO, mesh_EBO, mesh_UV;
+	GLuint mesh_VBO, mesh_VAO, mesh_EBO, mesh_NORMAL, mesh_UV;
 	int number_of_indices;
 	int mesh_width, mesh_height;
 
