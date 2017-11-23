@@ -68,14 +68,17 @@ void Terrain::loadTerrain(int width, int height) {
 	glBindVertexArray(0);
 	
 	number_of_indices = indices_space.size();
+
 }
 
-void Terrain::render(GLuint transform_loc) {
+void Terrain::render(GLuint transform_loc, float scale, float y_offset) {
 	glm::mat4 tran;
-	tran = glm::translate(tran, glm::vec3(-0.5 * (mesh_width -1), 0.0f, -0.5 * (mesh_height - 1)));//center the grid by origin for any 
+	tran = glm::scale(tran, glm::vec3(scale, 1.0f, scale));
+	tran = glm::translate(tran, glm::vec3(-0.5 * (mesh_width -1), 0.0f+ y_offset, -0.5 * (mesh_height - 1)));//center the grid by origin for any 
 	glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm::value_ptr(tran));
 	
 	glBindVertexArray(mesh_VAO);
 	glDrawElements(GL_TRIANGLES, number_of_indices, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+
 }

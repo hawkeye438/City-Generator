@@ -11,33 +11,26 @@ void Camera::setLookAt(glm::mat4 &view_matrix, GLuint viewMatrixLoc) {
 	glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 }
 
-void Camera::rotateCamera(glm::mat4 &view_matrix, GLuint viewMatrixLoc) {
-	view_matrix = glm::rotate(view_matrix, glm::radians(rotate_x), glm::vec3(1.0f, 0.0f, 0.0f));//rotate the camera along x axis
-	view_matrix = glm::rotate(view_matrix, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));//rotate the camera along y axis
-	view_matrix = glm::rotate(view_matrix, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));//rotate the camera along z axis
-
-	glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-}
-
 //Working but still testing
 void Camera::checkCollision(glm::vec3 point, float offset, int value) {
 	for (int i = 0; i < boxes.size(); i++) {
 		if (boxes[i]->intersect(point, offset)) {
 			cout << "intersecting working" << endl;
 			switch (value) {
-			case 1: eye -= 0.1f * center;
+			case 1: eye -= mv_distance * center;
 				break;
-			case 2: eye += 0.1f * center;
+			case 2: eye += mv_distance * center;
 				break;
-			case 3: eye += glm::normalize(glm::cross(center, up)) * 0.1f;
+			case 3: eye += glm::normalize(glm::cross(center, up)) * mv_distance;
 				break;
-			case 4: eye -= glm::normalize(glm::cross(center, up)) * 0.1f;
+			case 4: eye -= glm::normalize(glm::cross(center, up)) * mv_distance;
 				break;
-			case 5: eye.y -= 0.1f;
+			case 5: eye.y -= mv_distance;
 				break;
-			case 6: eye.y += 0.1f;
+			case 6: eye.y += mv_distance;
 				break;
 			}
+			//to see where it is colliding
 			cout << "eye coord" << endl;
 			cout << eye.x << "," << eye.y << "," << eye.z << endl;
 			cout << "object bounds" << endl;
@@ -48,33 +41,43 @@ void Camera::checkCollision(glm::vec3 point, float offset, int value) {
 	}
 }
 
+void Camera::checkTerrainCollision() {//establish a boundary that camera can't pass for terrain
+	if (eye.y < terrain_bounds) {
+		eye.y = terrain_bounds;
+	}
+}
+
 void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
 	float offset = 0.5f;
 	int value = 0;
 	//Camera Controls
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {//Forward
-		eye += 0.1f * center;
+		eye += mv_distance * center;
 		value = 1;
 		checkCollision(eye, offset, value);
+		checkTerrainCollision();
 		checkLoopPos();
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {//Backward
-		eye -= 0.1f * center;
+		eye -= mv_distance * center;
 		value = 2;
 		checkCollision(eye, offset, value);
+		checkTerrainCollision();
 		checkLoopPos();
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {//left
-		eye -= glm::normalize(glm::cross(center, up)) * 0.1f;
+		eye -= glm::normalize(glm::cross(center, up)) * mv_distance;
 		value = 3;
 		checkCollision(eye, offset, value);
+		checkTerrainCollision();
 		checkLoopPos();
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {//right
-		eye += glm::normalize(glm::cross(center, up)) * 0.1f;
+		eye += glm::normalize(glm::cross(center, up)) * mv_distance;
 		value = 4;
 		checkCollision(eye, offset, value);
+		checkTerrainCollision();
 		checkLoopPos();
 	}
 
@@ -82,34 +85,70 @@ void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, i
 		eye.y += 0.1f;
 		value = 5;
 		checkCollision(eye, offset, value);
+		checkTerrainCollision();
 		checkLoopPos();
 	}
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {//Down
 		eye.y -= 0.05f;
 		value = 6;
 		checkCollision(eye, offset, value);
+		checkTerrainCollision();
 		checkLoopPos();
 	}
 
-	//World Orientation
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		rotate_y += 1.0f;
+}
+
+void Camera::cameraMouse(GLFWwindow* window, double xpos, double ypos) {
+	float xoffset;
+	float yoffset;
+	float sensitivity = 0.005;
+	//if either of the mouse buttons are pressed
+	if (mouseButtonRightDown || mouseButtonMiddleDown || mouseButtonLeftDown) {
+		xoffset = xpos_click - xpos;
+		yoffset = ypos_click - ypos;
+		xoffset *= sensitivity;
+		yoffset *= sensitivity;
+
+		yaw += xoffset;
+		pitch += yoffset;
+
+		if (pitch > 89.0f)
+			pitch = 89.0f;
+		if (pitch < -89.0f)
+			pitch = -89.0f;
+
+		//pitch, yaw and roll for camera rotation around its own axis 
+		glm::vec3 front;
+		front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+		front.y = sin(glm::radians(pitch));
+		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+		center = glm::normalize(front);
 	}
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		rotate_y -= 1.0f;
+}
+
+void  Camera::cameraMouseButtons(GLFWwindow* window, int button, int action, int mods) {
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+		glfwGetCursorPos(window, &xpos_click, &ypos_click);
+		mouseButtonRightDown = true;
 	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		rotate_x += 1.0f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		rotate_x -= 1.0f;
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
+		mouseButtonRightDown = false;
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-		rotate_z += 1.0f;
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) {
+		glfwGetCursorPos(window, &xpos_click, &ypos_click);
+		mouseButtonMiddleDown = true;
 	}
-	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-		rotate_z -= 1.0f;
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_RELEASE) {
+		mouseButtonMiddleDown = false;
+	}
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+		glfwGetCursorPos(window, &xpos_click, &ypos_click);
+		mouseButtonLeftDown = true;
+	}
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
+		mouseButtonLeftDown = false;
 	}
 }
 

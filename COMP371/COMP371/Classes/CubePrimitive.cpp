@@ -1,11 +1,6 @@
 #include "CubePrimitive.h"
 
-void CubePrimitive::bindCube(GLuint &VAO) {
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec3> normals;
-	std::vector<glm::vec2> UVs;
-	loadOBJ("cube.obj", vertices, normals, UVs);
-
+void CubePrimitive::bindCube(GLuint &VAO, std::vector<glm::vec3> &vertices, std::vector<glm::vec3> &normals, std::vector<glm::vec2> &UVs) {
 	GLuint vertices_VBO, normals_VBO, UVs_VBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &vertices_VBO);
@@ -33,4 +28,8 @@ void CubePrimitive::bindCube(GLuint &VAO) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+}
+
+void CubePrimitive::loadCube(std::vector<glm::vec3> &vertices, std::vector<glm::vec3> &normals, std::vector<glm::vec2> &UVs) {
+	loadOBJ("cube.obj", vertices, normals, UVs);
 }

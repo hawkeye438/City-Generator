@@ -24,5 +24,14 @@ public:
 			if (vertices[i].z > max_z) max_z = vertices[i].z;
 		}
 	}
+
+	static void applyTransformation(glm::vec3 &min, glm::vec3 &max, glm::mat4 &transform) {
+		glm::vec4 tmp1(min, 1.0f);
+		glm::vec4 tmp2(max, 1.0f);
+		tmp1 = transform * tmp1;
+		tmp2 = transform * tmp2;
+		min = glm::vec3(tmp1);
+		max = glm::vec3(tmp2);
+	}
 };
 #endif

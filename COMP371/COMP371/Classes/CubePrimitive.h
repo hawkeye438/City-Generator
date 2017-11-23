@@ -15,6 +15,7 @@ using namespace std;
 class CubePrimitive {
 
 public:
-	static void bindCube(GLuint &VAO);
+	static void loadCube(std::vector<glm::vec3> &vertices, std::vector<glm::vec3> &normals, std::vector<glm::vec2> &UVs);
+	static void bindCube(GLuint &VAO, std::vector<glm::vec3> &vertices, std::vector<glm::vec3> &normals, std::vector<glm::vec2> &UVs);
 };
 #endif

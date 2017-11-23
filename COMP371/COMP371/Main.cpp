@@ -20,6 +20,7 @@
 #include "Classes/MyWindow.h"
 #include "Classes/Utility.h"
 #include "Classes/CubePrimitive.h"
+#include "Classes/Building.h"
 
 using namespace std;
 
@@ -28,6 +29,22 @@ const GLuint WIDTH = 800, HEIGHT = 800;
 
 //scaling
 glm::vec3 triangle_scale;
+
+//redirect functions
+auto func = [](GLFWwindow* window, int key, int scancode, int action, int mode)
+{
+	static_cast<MyWindow*>(glfwGetWindowUserPointer(window))->cameraControls(window, key, scancode, action, mode);
+};
+
+auto func2 = [](GLFWwindow* window, double xpos, double ypos)
+{
+	static_cast<MyWindow*>(glfwGetWindowUserPointer(window))->cameraMouseControls(window, xpos, ypos);
+};
+
+auto func3 = [](GLFWwindow* window, int button, int action, int mods)
+{
+	static_cast<MyWindow*>(glfwGetWindowUserPointer(window))->cameraMouseButtonsControls(window, button, action, mods);
+};
 
 int main()
 {
@@ -76,65 +93,27 @@ int main()
 	//configure global opengl state
 	glEnable(GL_DEPTH_TEST);
 
-	//Cube (note will have to adjust this class and future building class to account for passing vertices to bounding box
-	GLuint VAO;
-	CubePrimitive::bindCube(VAO);
-	//leaving this here for now
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec3> normals;
-	std::vector<glm::vec2> UVs;
-	loadOBJ("cube.obj", vertices, normals, UVs);
-
-	//Testing bounding box
-	//min max for cube
-	glm::vec3 min, max;
-	vector<BoundingBox*> boxes;
-
-	GLfloat
-		min_x, max_x,
-		min_y, max_y,
-		min_z, max_z;
-
-	Utility::setMinMaxVert(min_x, max_x, min_y, max_y, min_z, max_z, vertices);
-	
-	cout << min_x << "," << max_x << endl;
-	cout << min_y << "," << max_y << endl;
-	cout << min_z << "," << max_z << endl;
-	
-	//first cube with no transformation
-	min = glm::vec3(min_x, min_y, min_z);
-	max = glm::vec3(max_x, max_y, max_z);
-	
-	BoundingBox* temp = new BoundingBox(min, max);
-	boxes.push_back(temp);
-
-	//second cube with transformation to match ones done during render
-	//will have to store transformations in bounding box first before passing it to rendering
-	glm::mat4 cube_trans;
-	cube_trans = glm::scale(cube_trans, glm::vec3(1.0f, 2.0f, 1.0f));
-	cube_trans = glm::translate(cube_trans, glm::vec3(4.0f, 0.0f, 0.0f));
-
-	glm::vec4 test(min, 1.0f);
-	glm::vec4 test2(max, 1.0f);
-	test = cube_trans * test;
-	test2 = cube_trans * test2;
-	min = glm::vec3(test);
-	max = glm::vec3(test2);
-	temp = new BoundingBox(min, max);
-	boxes.push_back(temp);
+	//Building created from cubes
+	Building buildings;
+	buildings.createBuildings(4);
 
 	//Terrain
 	Terrain terrain;
 	terrain.loadTerrain(10,10);//width and heeight of terrain
 
+	Terrain road;
+	road.loadTerrain(4, 4);//width and heeight of terrain
+
 	//texturizing
 	Texture::loadTexture(1, "brick.jpg");//texture1
 	Texture::loadTexture(2, "building.jpg");//texture2
 	Texture::loadTexture(3, "grass.jpg");//texture3
+	Texture::loadTexture(4, "road.jpg");//texture3
 
 	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[0]"), 1); //cubeTexture should read from texture unit 1, skybox is 0
 	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[1]"), 2); //cubeTexture should read from texture unit 2, skybox is 0
 	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[2]"), 3); //cubeTexture should read from texture unit 3, skybox is 0
+	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[3]"), 4); //cubeTexture should read from texture unit 4, skybox is 0
 
 	//skybox
 	//skybox texture from https://93i.de/p/free-skybox-texture-set/
@@ -149,30 +128,29 @@ int main()
 	GLuint transformLoc = glGetUniformLocation(shader_program.getShaderId(), "model_matrix");
 	GLuint drawing_skybox_id = glGetUniformLocation(shader_program.getShaderId(), "drawingSkybox");
 	GLuint texture_option = glGetUniformLocation(shader_program.getShaderId(), "textureOption");
-	GLuint texture_Matrix = glGetUniformLocation(shader_program.getShaderId(), "textureMatrix");
+	GLuint texture_matrix = glGetUniformLocation(shader_program.getShaderId(), "textureMatrix");
 	GLuint scale_UV = glGetUniformLocation(shader_program.getShaderId(), "scaleUV");
 	
 	//Camera set up
-	glm::vec3 eye(0.0f, 0.0f, 3.0f);
+	glm::vec3 eye(0.0f, 0.5f, 3.0f);
 	glm::vec3 center(0.0f, 0.0f, -1.0f);
 	glm::vec3 up(0.0f, 1.0f, 0.0f);
-	Camera* camera = new Camera(eye, center, up, boxes);//boxes to test camera collision with world objects
+	Camera* camera = new Camera(eye, center, up);//boxes to test camera collision with world objects
 	camera->setPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f, projectionLoc);
 	//set loop coord
-	camera->setLoopCoord(5, 5);//half the length and width of terrain
-	// Set the required callback functions
+	camera->setLoopCoord(40,40);//half the length and width of the scaled terrain for now
+	
+	// Set window pointer to the window we want and then set callbacks using our redirection functions
 	MyWindow* myWindow = new MyWindow(camera);
 	glfwSetWindowUserPointer(window, myWindow);
-	auto func = [](GLFWwindow* window, int key, int scancode, int action, int mode)
-	{
-		static_cast<MyWindow*>(glfwGetWindowUserPointer(window))->cameraControls(window, key,scancode, action, mode);
-	};
 
 	//*NOTE-glfw cannot take class methods as callback unless it is static (due to glfw base on C)
 	//*NOTE-from GLFW Faq "use static methods or regular functions as callbacks, store the pointer to the object you wish to call in some location reachable from the callbacks and use it to call methods on your object"
 	//set key call back
 	glfwSetKeyCallback(window, func);
-	
+	glfwSetCursorPosCallback(window, func2);
+	glfwSetMouseButtonCallback(window, func3);
+
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -186,7 +164,6 @@ int main()
 
 		glm::mat4 view_matrix;
 		camera->setLookAt(view_matrix, viewMatrixLoc);
-		camera->rotateCamera(view_matrix, viewMatrixLoc);
 
 		glm::mat4 model_matrix;
 		model_matrix = glm::scale(model_matrix, triangle_scale);
@@ -199,31 +176,19 @@ int main()
 		//set view back to normal
 		glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 
+		//set up for bounding box collisions
+		vector<BoundingBox*> boxes;
+
 		//Terrain
 		glUniform1i(texture_option, 3);
-		terrain.render(transformLoc);
-		
-		//Draw the textured cube and instances
-		glBindVertexArray(VAO);
-		glm::mat4 cube;
-		cube = glm::translate(cube, glm::vec3(0.0f, 0.0f, 0.0f));
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(cube));
-		glUniform1i(texture_option, 1);
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+		terrain.render(transformLoc, 10.0f, 0.0f);
+		glUniform1i(texture_option, 4);
+		road.render(transformLoc, 25, 0.01f);
 
-		//draw a second cube with different texture and scale
-		cube = glm::scale(cube, glm::vec3(1.0f, 2.0f, 1.0f));
-		cube = glm::translate(cube, glm::vec3(4.0f,0.0f,0.0f));
-		
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(cube));
-		//for UV scaling, in order to have repeated texture and not stretch texture
-		glUniformMatrix4fv(texture_Matrix, 1, GL_FALSE, glm::value_ptr(cube));
-		
-		glUniform1i(texture_option, 2);
-		glUniform1i(scale_UV, 1);//true
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-		glUniform1i(scale_UV, 0);//false
-		glBindVertexArray(0);
+		//Draw the textured cube and instances
+		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV);
+		//set the boxes for camera collision
+		camera->setCameraBoxes(boxes);
 
 		// Swap the screen buffers
 		glfwSwapBuffers(window);

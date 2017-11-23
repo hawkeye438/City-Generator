@@ -117,6 +117,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Classes\BoundingBox.h" />
+    <ClInclude Include="Classes\Building.h" />
     <ClInclude Include="Classes\Camera.h" />
     <ClInclude Include="Classes\CubePrimitive.h" />
     <ClInclude Include="Classes\MyWindow.h" />
@@ -131,6 +132,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Classes\BoundingBox.cpp" />
+    <ClCompile Include="Classes\Building.cpp" />
     <ClCompile Include="Classes\Camera.cpp" />
     <ClCompile Include="Classes\CubePrimitive.cpp" />
     <ClCompile Include="Classes\Shader.cpp" />
