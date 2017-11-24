@@ -93,16 +93,25 @@ int main()
 	//configure global opengl state
 	glEnable(GL_DEPTH_TEST);
 
-	//Building created from cubes
-	Building buildings;
-	buildings.createBuildings(4);
-
 	//Terrain
 	Terrain terrain;
 	terrain.loadTerrain(10,10);//width and heeight of terrain
 
 	Terrain road;
-	road.loadTerrain(4, 4);//width and heeight of terrain
+	int city_dim = 4;
+	float city_scale = 25.0f;
+	road.loadTerrain(city_dim, city_dim);//width and heeight of terrain
+
+	 //Building created from cubes
+	 //this is base on road terrain MxM and Scale value
+	//example 4x4, to center in world, it become -1.5, 0, 1.5
+	//scale this by 25, it become 37.5 - offset of 1 = 36.5. Rounded to 36
+	//36/2 = 18. 18 - offset of 2 = 16.
+	//16 by 16 is 256
+	Building buildings;
+	int num_of_building = (int) (((0.5 * (city_dim - 1) * city_scale) - 1)/2) - 2 ;
+	int total_buildings = num_of_building * num_of_building;
+	buildings.createBuildings(total_buildings);
 
 	//Shadows
 	//The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
@@ -161,7 +170,7 @@ int main()
 	GLuint depthBiasMatrixID = glGetUniformLocation(shader_program.getShaderId(), "DepthBiasMVP");
 	
 	//Camera set up
-	glm::vec3 eye(0.0f, 0.5f, 3.0f);
+	glm::vec3 eye(0.0f, 20.0f, 3.0f);
 	glm::vec3 center(0.0f, 0.0f, -1.0f);
 	glm::vec3 up(0.0f, 1.0f, 0.0f);
 	Camera* camera = new Camera(eye, center, up);//boxes to test camera collision with world objects
@@ -269,10 +278,11 @@ int main()
 		glUniform1i(texture_option, 3);
 		terrain.render(transformLoc, 10.0f, 0.0f);
 		glUniform1i(texture_option, 4);
-		road.render(transformLoc, 25, 0.01f);
+		road.render(transformLoc, city_scale, 0.01f);
 
 		//Draw the textured cube and instances
-		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV);
+		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, city_scale);
+
 		//set the boxes for camera collision
 		camera->setCameraBoxes(boxes);
 

@@ -28,6 +28,7 @@ void main()
 	
 	//must not have 4 arguments
 	vec3 cubeColour = vec3(1.0f, 0.8f, 0.8f);
+	//vec3 cubeColour = vec3(1.0f, 1.0f, 1.0f);
 	vec3 lightColour = vec3(1.0f, 1.0f, 1.0f);
 	
 	//Shadows
@@ -60,7 +61,7 @@ void main()
 	vec3 specular = visibility * specularStrength * spec * lightColour;
 	
 	vec3 finalColour = (ambient_contribution + diffuse_contribution + specular) * cubeColour;
-	
+	//vec3 finalColour =  cubeColour;//to disable lights
 	if (drawingSkybox) {
 		color = texture(skybox, skyboxCoord);
 	}

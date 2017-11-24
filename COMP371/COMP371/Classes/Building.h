@@ -30,6 +30,6 @@ public:
 	~Building() {}
 
 	void createBuildings(int num);
-	void render(vector<BoundingBox*> &b, GLuint transformLoc, GLuint texture_option, GLuint texture_matrix, GLuint scale_UV);
+	void render(vector<BoundingBox*> &b, GLuint transformLoc, GLuint texture_option, GLuint texture_matrix, GLuint scale_UV, int city_dim, float city_scale);
 };
 #endif
