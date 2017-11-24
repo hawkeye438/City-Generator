@@ -115,6 +115,13 @@ int main()
 		}
 	}
 
+	uniform_int_distribution<> distTexture(1, 4); // create distribution for integers
+	vector<int> random_texture;
+	for (int k = 0; k < total_buildings; k++) {
+		int tmp = distTexture(engine);
+		random_texture.push_back(tmp);
+	}
+
 	//Terrain
 	Terrain terrain;
 	terrain.loadTerrain(100,100);//width and heeight of terrain
@@ -149,16 +156,14 @@ int main()
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	//texturizing
-	Texture::loadTexture(1, "brick.jpg");//texture1
-	Texture::loadTexture(2, "building.jpg");//texture2
-	Texture::loadTexture(3, "grass.jpg");//texture3
-	Texture::loadTexture(4, "road.jpg");//texture3
+	Texture::loadTexture(1, "building1.jpg", shader_program.getShaderId(), "textureNumber[0]");//texture1
+	Texture::loadTexture(2, "building2.jpg", shader_program.getShaderId(), "textureNumber[1]");//texture2
+	Texture::loadTexture(3, "building3.jpg", shader_program.getShaderId(), "textureNumber[2]");//texture3
+	Texture::loadTexture(4, "building4.jpg", shader_program.getShaderId(), "textureNumber[3]");//texture3
+	Texture::loadTexture(5, "grass.jpg", shader_program.getShaderId(), "textureNumber[4]");//texture3
+	Texture::loadTexture(6, "road.jpg", shader_program.getShaderId(), "textureNumber[5]");//texture3
 
-	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[0]"), 1); //cubeTexture should read from texture unit 1, skybox is 0
-	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[1]"), 2); //cubeTexture should read from texture unit 2, skybox is 0
-	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[2]"), 3); //cubeTexture should read from texture unit 3, skybox is 0
-	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "textureNumber[3]"), 4); //cubeTexture should read from texture unit 4, skybox is 0
-	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "shadowMap"), 1);
+	glUniform1i(glGetUniformLocation(shader_program.getShaderId(), "shadowMap"), 7);
 
 	//skybox
 	//skybox texture from https://93i.de/p/free-skybox-texture-set/
@@ -277,7 +282,7 @@ int main()
 		//in the "MVP" uniform
 		glUniformMatrix4fv(depthBiasMatrixID, 1, GL_FALSE, glm::value_ptr(depthBiasMVP));
 		//glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]);
-		glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(GL_TEXTURE7);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 		
 		//skybox
@@ -290,13 +295,13 @@ int main()
 		vector<BoundingBox*> boxes;
 
 		//Terrain
-		glUniform1i(texture_option, 3);
+		glUniform1i(texture_option, 5);
 		terrain.render(transformLoc, 0.0f);
-		glUniform1i(texture_option, 4);
+		glUniform1i(texture_option, 6);
 		road.render(transformLoc, 0.01f);
 
 		//Draw the textured cube and instances
-		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, building_scales);
+		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, building_scales, random_texture);
 
 		//set the boxes for camera collision
 		camera->setCameraBoxes(boxes);
