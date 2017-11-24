@@ -93,25 +93,21 @@ int main()
 	//configure global opengl state
 	glEnable(GL_DEPTH_TEST);
 
-	//Terrain
-	Terrain terrain;
-	terrain.loadTerrain(10,10);//width and heeight of terrain
-
-	Terrain road;
-	int city_dim = 4;
-	float city_scale = 25.0f;
-	road.loadTerrain(city_dim, city_dim);//width and heeight of terrain
-
-	 //Building created from cubes
-	 //this is base on road terrain MxM and Scale value
-	//example 4x4, to center in world, it become -1.5, 0, 1.5
-	//scale this by 25, it become 37.5 - offset of 1 = 36.5. Rounded to 36
-	//36/2 = 18. 18 - offset of 2 = 16.
-	//16 by 16 is 256
+	//Building created from cubes
+	//4.5 ratio to city dimension to populate the entire city
 	Building buildings;
-	int num_of_building = (int) (((0.5 * (city_dim - 1) * city_scale) - 1)/2) - 2 ;
+	int num_of_building = 12;
 	int total_buildings = num_of_building * num_of_building;
 	buildings.createBuildings(total_buildings);
+	cout << total_buildings;
+
+	//Terrain
+	Terrain terrain;
+	terrain.loadTerrain(100,100);//width and heeight of terrain
+
+	Terrain road;
+	int city_dim = (int) ceil(4.5 * num_of_building);
+	road.loadTerrain(city_dim, city_dim);//width and height of terrain
 
 	//Shadows
 	//The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
@@ -276,12 +272,12 @@ int main()
 
 		//Terrain
 		glUniform1i(texture_option, 3);
-		terrain.render(transformLoc, 10.0f, 0.0f);
+		terrain.render(transformLoc, 0.0f);
 		glUniform1i(texture_option, 4);
-		road.render(transformLoc, city_scale, 0.01f);
+		road.render(transformLoc, 0.01f);
 
 		//Draw the textured cube and instances
-		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, city_scale);
+		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim);
 
 		//set the boxes for camera collision
 		camera->setCameraBoxes(boxes);

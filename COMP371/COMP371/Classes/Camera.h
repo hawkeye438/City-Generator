@@ -31,7 +31,7 @@ public:
 		mouseButtonLeftDown = false;
 		xpos_click = 0.0f;
 		ypos_click = 0.0f;
-		mv_distance = 0.1f;
+		mv_distance = 0.25f;
 		terrain_bounds = 0.1f;
 		yaw = -90.0f;	
 		pitch = 0.0f;

@@ -24,6 +24,6 @@ public:
 	~Terrain();
 
 	void loadTerrain(int width, int height);
-	void render(GLuint transform_loc, float scale, float y_offset);
+	void render(GLuint transform_loc, float y_offset);
 };
 #endif
