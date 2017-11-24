@@ -14,6 +14,6 @@ class Texture
 public:
 	Texture();
 	~Texture();
-	static void loadTexture(int value, const char* filename);
+	static void loadTexture(int value, const char* filename, GLuint shader, const char* texture_loc);
 };
 #endif

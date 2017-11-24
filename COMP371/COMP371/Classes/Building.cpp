@@ -46,7 +46,7 @@ void Building::render(vector<BoundingBox*> &b, GLuint transformLoc, GLuint textu
 			//for UV scaling, in order to have repeated texture and not stretch texture
 			glUniformMatrix4fv(texture_matrix, 1, GL_FALSE, glm::value_ptr(cube));
 
-			glUniform1i(texture_option, 2);
+			glUniform1i(texture_option, 4);
 			glUniform1i(scale_UV, 1);//true
 			glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 			glUniform1i(scale_UV, 0);//false

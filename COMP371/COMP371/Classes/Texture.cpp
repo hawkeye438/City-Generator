@@ -2,7 +2,7 @@
 Texture::Texture() {}
 Texture::~Texture() {}
 
-void Texture::loadTexture(int value, const char* filename) {
+void Texture::loadTexture(int value, const char* filename, GLuint shader, const char* texture_loc) {
 	glActiveTexture(GL_TEXTURE0 + value); //select texture unit
 	GLuint texture;
 	glGenTextures(1, &texture);
@@ -23,4 +23,7 @@ void Texture::loadTexture(int value, const char* filename) {
 	unsigned char* image = SOIL_load_image(filename, &texture_width, &texture_height, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	SOIL_free_image_data(image); //free resources
+
+	glUniform1i(glGetUniformLocation(shader, texture_loc), value); //cubeTexture should read from texture unit 1, skybox is 0
+
 }

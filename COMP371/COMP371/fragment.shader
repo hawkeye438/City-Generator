@@ -10,7 +10,7 @@ in vec4 viewSpace;
 
 out vec4 color;
 
-uniform sampler2D textureNumber[4];//multiple texture support, simply change array size to numnber of texture you want
+uniform sampler2D textureNumber[6];//multiple texture support, simply change array size to numnber of texture you want
 uniform samplerCube skybox; //skybox sampling
 uniform sampler2D shadowMap;
 
@@ -149,6 +149,21 @@ void main()
 			color = texture(textureNumber[3], outUV) * vec4(finalColour, 1.0f);
 		}
 	}
-
+	else if (textureOption == 5) {
+		if (scaleUV) {
+			color = texture(textureNumber[4], lastUV) * vec4(finalColour, 1.0f);
+		}
+		else {
+			color = texture(textureNumber[4], outUV) * vec4(finalColour, 1.0f);
+		}
+	}
+	else if (textureOption == 6) {
+		if (scaleUV) {
+			color = texture(textureNumber[5], lastUV) * vec4(finalColour, 1.0f);
+		}
+		else {
+			color = texture(textureNumber[5], outUV) * vec4(finalColour, 1.0f);
+		}
+	}
 	color = applyFog();
 }
