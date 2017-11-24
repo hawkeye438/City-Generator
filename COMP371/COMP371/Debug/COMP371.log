@@ -1,7 +1,4 @@
-﻿  Building.cpp
-c:\zchanstuff\channystuff\pandastuff\chan school 2\s9-comp371\project_git\city-generator\comp371\comp371\classes\utility.h(18): warning C4018: '<': signed/unsigned mismatch
-c:\zchanstuff\channystuff\pandastuff\chan school 2\s9-comp371\project_git\city-generator\comp371\comp371\classes\building.cpp(30): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
+﻿LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
 BoundingBox.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' specification
 soil.lib(image_DXT.obj) : warning LNK4099: PDB 'SOIL.pdb' was not found with 'soil.lib(image_DXT.obj)' or at 'C:\zChanStuff\channystuff\Pandastuff\Chan school 2\s9-Comp371\Project_git\City-Generator\COMP371\Debug\SOIL.pdb'; linking object as if no debug info
 soil.lib(image_helper.obj) : warning LNK4099: PDB 'SOIL.pdb' was not found with 'soil.lib(image_helper.obj)' or at 'C:\zChanStuff\channystuff\Pandastuff\Chan school 2\s9-Comp371\Project_git\City-Generator\COMP371\Debug\SOIL.pdb'; linking object as if no debug info

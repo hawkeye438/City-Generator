@@ -115,6 +115,13 @@ int main()
 		}
 	}
 
+	uniform_int_distribution<> distTexture(1, 4); // create distribution for integers
+	vector<int> random_texture;
+	for (int k = 0; k < total_buildings; k++) {
+		int tmp = distTexture(engine);
+		random_texture.push_back(tmp);
+	}
+
 	//Terrain
 	Terrain terrain;
 	terrain.loadTerrain(100,100);//width and heeight of terrain
@@ -294,7 +301,7 @@ int main()
 		road.render(transformLoc, 0.01f);
 
 		//Draw the textured cube and instances
-		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, building_scales);
+		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, building_scales, random_texture);
 
 		//set the boxes for camera collision
 		camera->setCameraBoxes(boxes);
