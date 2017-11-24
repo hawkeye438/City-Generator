@@ -96,6 +96,57 @@ void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, i
 		checkLoopPos();
 	}
 
+	// Fog manipulation
+	if (action == GLFW_PRESS || action == GLFW_REPEAT)
+	{
+		switch (key)
+		{
+		case GLFW_KEY_U: // Switch the current fog mode
+			if (currentFogMode == NONE)
+				if (mode & GLFW_MOD_SHIFT)
+					currentFogMode = static_cast<fogMode>(NONE - 1);
+				else
+					currentFogMode = LINEAR;
+			else if (currentFogMode == 0 && mode & GLFW_MOD_SHIFT)
+				currentFogMode = static_cast<fogMode>(NONE - 1);
+			else
+				currentFogMode = static_cast<fogMode>(currentFogMode + ((mode & GLFW_MOD_SHIFT) ? -1 : 1));
+			glUniform1i(fog_option, currentFogMode);
+			break;
+		case GLFW_KEY_J: // Switch debug mode
+			fogDebugValue = !fogDebugValue;
+			glUniform1i(fog_debug, fogDebugValue);
+			break;
+		case GLFW_KEY_I: // Scale the fog density
+			fogDensity += (mode & GLFW_MOD_SHIFT) ? -0.005f : 0.005f;
+			fogDensity = glm::clamp(fogDensity, 0.0f, 1.0f);
+			glUniform1f(fog_density, fogDensity);
+			break;
+		case GLFW_KEY_O: // Scale the fog start
+			fogStart += (mode & GLFW_MOD_SHIFT) ? -5.0f : 5.0f;
+			fogStart = glm::clamp(fogStart, 0.0f, fogEnd);
+			glUniform1f(fog_start, fogStart);
+			break;
+		case GLFW_KEY_P: // Scale the fog end
+			fogEnd += (mode & GLFW_MOD_SHIFT) ? -5.0f : 5.0f;
+			fogEnd = glm::max(fogEnd, fogStart);
+			glUniform1f(fog_end, fogEnd);
+			break;
+		case GLFW_KEY_K: // Show debug info
+			cout << "Fog debug info:" << endl;
+			cout << "\t- option: " << currentFogMode << endl;
+			cout << "\t- debug: " << boolalpha << fogDebugValue << noboolalpha << endl;
+			cout << "\t- start: " << fogStart << endl;
+			cout << "\t- end: " << fogEnd << endl;
+			cout << "\t- density: " << fogDensity << endl;
+			break;
+		default:
+			break;
+		}
+
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+			glfwSetWindowShouldClose(window, 1);
+	}
 }
 
 void Camera::cameraMouse(GLFWwindow* window, double xpos, double ypos) {

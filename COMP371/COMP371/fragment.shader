@@ -24,17 +24,18 @@ uniform vec3 viewPosition;
 // Fog uniforms
 uniform int fogOption;
 uniform int fogDebugDepth;
+// Linear fog
+uniform float fogStart;
+uniform float fogEnd;
+// Exponential fog
+uniform float fogDensity;
 
 // Fog constants
 const vec3 fogColour = vec3(0.4f, 0.4f, 0.4f);
-// Linear fog
-const float fogStart = 10;
-const float fogEnd = 35;
-// Exponential fog
-const float fogDensity = 0.04;
+
 // Scattering fog
-const vec3 be = vec3(0.4, 0.3, 0.3); // Fog extinction factors
-const vec3 bi = vec3(0.05, 0.05, 0.05); // Fog inscattering factors
+const vec3 be = vec3(0.042, 0.042, 0.042); // Fog extinction factors
+const vec3 bi = vec3(0.1, 0.1, 0.1); // Fog inscattering factors
 
 // Return the depth in grayscale color
 vec4 debugDepthFog(float fogFactor)
@@ -47,9 +48,9 @@ vec4 scatteringFog(float dist)
 {
 	dist = -dist;
 	// Scattering algorithm from http://www.iquilezles.org/www/articles/fog/fog.htm
-	vec3 extColour = vec3(exp(dist*be.x), exp(dist*be.y), exp(dist*be.z));
-	vec3 insColour = vec3(exp(dist*bi.x), exp(dist*bi.y), exp(dist*bi.z));
-	return vec4(vec3(color) * (1.0 - extColour) + fogColour * insColour, color[3]);
+	vec3 extColour = vec3(exp(dist * be.x), exp(dist * be.y), exp(dist * be.z));
+	vec3 insColour = vec3(exp(dist * bi.x), exp(dist * bi.y), exp(dist * bi.z));
+	return vec4(vec3(color) * extColour + (1 - insColour) * fogColour, color[3]);
 }
 
 vec4 applyFog()

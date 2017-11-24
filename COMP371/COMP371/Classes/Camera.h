@@ -14,6 +14,13 @@
 using namespace std;
 
 class Camera {
+	enum fogMode {
+		LINEAR = 1,
+		EXP,
+		SCATTERING,
+		NONE
+	};
+
 	glm::vec3 eye, center, up;
 	bool mouseButtonRightDown, mouseButtonMiddleDown, mouseButtonLeftDown;
 	double xpos_click, ypos_click;
@@ -23,9 +30,23 @@ class Camera {
 	vector<BoundingBox*> boxes;
 	float min_xd, max_xd, min_zd, max_zd;
 
+	// Fog attributes
+	fogMode currentFogMode;
+	bool fogDebugValue;
+	float fogStart = 10;
+	float fogEnd = 35;
+	float fogDensity = 0.04;
+	GLuint fog_option;
+	GLuint fog_debug;
+	GLuint fog_start;
+	GLuint fog_end;
+	GLuint fog_density;
+
 public:
 	Camera() {}
-	Camera(glm::vec3 e, glm::vec3 c, glm::vec3 u): eye(e), center(c), up(u) {
+	Camera(glm::vec3 e, glm::vec3 c, glm::vec3 u, const GLuint fO, const GLuint fDbg, const GLuint fS, const GLuint fE, const GLuint fD) :
+		eye(e), center(c), up(u), fog_option(fO), fog_debug(fDbg), fog_start(fS), fog_end(fE), fog_density(fD)
+	{
 		mouseButtonRightDown = false;
 		mouseButtonMiddleDown = false;
 		mouseButtonLeftDown = false;
@@ -40,6 +61,9 @@ public:
 		max_xd = 0.0f;
 		min_zd = 0.0f;
 		max_zd = 0.0f;
+
+		currentFogMode = LINEAR;
+		fogDebugValue = false;
 	}
 	~Camera() {}
 

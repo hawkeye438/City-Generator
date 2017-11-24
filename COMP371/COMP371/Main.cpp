@@ -185,15 +185,21 @@ int main()
 	GLuint depthBiasMatrixID = glGetUniformLocation(shader_program.getShaderId(), "DepthBiasMVP");
 	GLuint fog_option = glGetUniformLocation(shader_program.getShaderId(), "fogOption");
 	GLuint fog_debug_depth = glGetUniformLocation(shader_program.getShaderId(), "fogDebugDepth");
+	GLuint fog_start = glGetUniformLocation(shader_program.getShaderId(), "fogStart");
+	GLuint fog_end = glGetUniformLocation(shader_program.getShaderId(), "fogEnd");
+	GLuint fog_density = glGetUniformLocation(shader_program.getShaderId(), "fogDensity");
 
-	glUniform1i(fog_option, 3);
+	glUniform1i(fog_option, 1);
 	glUniform1i(fog_debug_depth, 0);
+	glUniform1f(fog_start, 10.0f);
+	glUniform1f(fog_end, 35.0f);
+	glUniform1f(fog_density, 0.04f);
 
 	//Camera set up
 	glm::vec3 eye(0.0f, 20.0f, 3.0f);
 	glm::vec3 center(0.0f, 0.0f, -1.0f);
 	glm::vec3 up(0.0f, 1.0f, 0.0f);
-	Camera* camera = new Camera(eye, center, up);//boxes to test camera collision with world objects
+	Camera* camera = new Camera(eye, center, up, fog_option, fog_debug_depth, fog_start, fog_end, fog_density);//boxes to test camera collision with world objects
 	camera->setPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f, projectionLoc);
 	//set loop coord
 	camera->setLoopCoord(40,40);//half the length and width of the scaled terrain for now
