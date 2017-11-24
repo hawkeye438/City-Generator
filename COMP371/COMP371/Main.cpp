@@ -312,6 +312,13 @@ int main()
 		//set the boxes for camera collision
 		camera->setCameraBoxes(boxes);
 
+		// Free bounding boxes memory
+		while (boxes.size() > 0)
+		{
+			delete boxes[boxes.size() - 1];
+			boxes.pop_back();
+		}
+
 		// Swap the screen buffers
 		glfwSwapBuffers(window);
 	}
