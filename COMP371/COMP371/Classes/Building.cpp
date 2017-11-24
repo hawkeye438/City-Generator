@@ -17,7 +17,7 @@ void Building::createBuildings(int num) {
 	max = glm::vec3(max_x, max_y, max_z);
 }
 
-void Building::render(vector<BoundingBox*> &b, GLuint transformLoc, GLuint texture_option, GLuint texture_matrix, GLuint scale_UV, int city_dim) {
+void Building::render(vector<BoundingBox*> &b, GLuint transformLoc, GLuint texture_option, GLuint texture_matrix, GLuint scale_UV, int city_dim, vector<glm::vec3> building_scales) {
 	float scale = 1.0f;//testing
 	float x_translate;
 	float x_reset;
@@ -39,8 +39,8 @@ void Building::render(vector<BoundingBox*> &b, GLuint transformLoc, GLuint textu
 			glBindVertexArray(buildings[j+i]);
 			//define transformation (in order of scale then translate)
 			glm::mat4 cube;
-			cube = glm::translate(cube, glm::vec3(x_translate, scale, z_translate));
-			cube = glm::scale(cube, glm::vec3(1.0f, scale, 1.0f));
+			cube = glm::translate(cube, glm::vec3(x_translate, building_scales[j + (i * num_of_building)].y, z_translate));
+			cube = glm::scale(cube, glm::vec3(0.5f + building_scales[j + (i * num_of_building)].x, building_scales[j + (i * num_of_building)].y, 0.5f + building_scales[j +(i * num_of_building)].z));
 
 			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(cube));
 			//for UV scaling, in order to have repeated texture and not stretch texture
