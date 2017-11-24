@@ -6,6 +6,7 @@ in vec3 outNormal; // The vertice's normal vector
 in vec3 fragPosition;
 in vec3 lightPosition;
 in vec4 ShadowCoord;
+in vec4 viewSpace;
 
 out vec4 color;
 
@@ -19,6 +20,54 @@ uniform mat4 textureMatrix;//for scaling uv and allow texture to scale
 uniform bool scaleUV;//only scale the when true
 
 uniform vec3 viewPosition;
+
+// Fog uniforms
+uniform int fogOption;
+uniform int fogDebugDepth;
+
+// Fog constants
+const vec3 fogColour = vec3(0.4f, 0.4f, 0.4f);
+// Linear fog
+const float fogStart = 10;
+const float fogEnd = 35;
+// Exponential fog
+const float fogDensity = 0.04;
+// Scattering fog
+const vec3 be = vec3(0.4, 0.3, 0.3); // Fog extinction factors
+const vec3 bi = vec3(0.05, 0.05, 0.05); // Fog inscattering factors
+
+// Return the depth in grayscale color
+vec4 debugDepthFog(float fogFactor)
+{
+	fogFactor = 1 - fogFactor;
+	return vec4(fogFactor, fogFactor, fogFactor, 1.0);
+}
+
+vec4 scatteringFog(float dist)
+{
+	dist = -dist;
+	// Scattering algorithm from http://www.iquilezles.org/www/articles/fog/fog.htm
+	vec3 extColour = vec3(exp(dist*be.x), exp(dist*be.y), exp(dist*be.z));
+	vec3 insColour = vec3(exp(dist*bi.x), exp(dist*bi.y), exp(dist*bi.z));
+	return vec4(vec3(color) * (1.0 - extColour) + fogColour * insColour, color[3]);
+}
+
+vec4 applyFog()
+{
+	float dist = length(viewSpace);
+	float fogFactor;
+	if (fogOption == 1) // Linear fog
+		fogFactor = clamp((fogEnd - dist) / (fogEnd - fogStart), 0.0, 1.0);
+	else if (fogOption == 2) // Exponential fog
+		fogFactor = clamp(1.0 / exp((dist * fogDensity) * (dist * fogDensity)), 0.0, 1.0);
+	else if (fogOption == 3) // Exponential fog split (extinction/inscattering)
+		return scatteringFog(dist);
+	else
+		return color;
+	if (fogDebugDepth == 1)
+		return debugDepthFog(fogFactor);
+	return vec4(mix(fogColour, vec3(color), fogFactor), color[3]);
+}
 
 void main()
 {	//UV scaling for repeated texture rather than texture stretching
@@ -60,8 +109,9 @@ void main()
 	
 	vec3 specular = visibility * specularStrength * spec * lightColour;
 	
-	//vec3 finalColour = (ambient_contribution + diffuse_contribution + specular) * cubeColour;
-	vec3 finalColour =  cubeColour;//to disable lights
+	vec3 finalColour = (ambient_contribution + diffuse_contribution + specular) * cubeColour;
+	//vec3 finalColour =  cubeColour;//to disable lights
+
 	if (drawingSkybox) {
 		color = texture(skybox, skyboxCoord);
 	}
@@ -99,4 +149,6 @@ void main()
 			color = texture(textureNumber[3], outUV) * vec4(finalColour, 1.0f);
 		}
 	}
-} 
+
+	color = applyFog();
+}

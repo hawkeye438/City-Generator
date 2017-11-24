@@ -178,7 +178,12 @@ int main()
 	GLuint light_pos = glGetUniformLocation(shader_program.getShaderId(), "light_matrix");
 	GLuint view_pos = glGetUniformLocation(shader_program.getShaderId(), "viewPosition");
 	GLuint depthBiasMatrixID = glGetUniformLocation(shader_program.getShaderId(), "DepthBiasMVP");
-	
+	GLuint fog_option = glGetUniformLocation(shader_program.getShaderId(), "fogOption");
+	GLuint fog_debug_depth = glGetUniformLocation(shader_program.getShaderId(), "fogDebugDepth");
+
+	glUniform1i(fog_option, 3);
+	glUniform1i(fog_debug_depth, 0);
+
 	//Camera set up
 	glm::vec3 eye(0.0f, 20.0f, 3.0f);
 	glm::vec3 center(0.0f, 0.0f, -1.0f);

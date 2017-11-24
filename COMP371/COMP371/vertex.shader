@@ -12,6 +12,8 @@ out vec3 fragPosition; // world coordinates
 out vec3 lightPosition;
 out vec3 viewPosition;
 
+out vec4 viewSpace; // needed for fog calc
+
 uniform mat4 DepthBiasMVP;
 out vec4 ShadowCoord;
 
@@ -25,7 +27,8 @@ uniform mat4 projection_matrix;
 
 void main()
 {
-    gl_Position = projection_matrix * view_matrix * model_matrix * vec4(position, 1.0);
+	viewSpace = view_matrix * model_matrix * vec4(position, 1.0);
+    gl_Position = projection_matrix * viewSpace;
 	outUV = UV;
 	skyboxCoord = position;
 	outNormal = vec3(model_matrix * vec4(normal,0.0f));
