@@ -196,6 +196,9 @@ int main()
 	glfwSetCursorPosCallback(window, func2);
 	glfwSetMouseButtonCallback(window, func3);
 
+	//set up for bounding box collisions
+	vector<BoundingBox*> boxes;
+
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -278,20 +281,11 @@ int main()
 		//set view back to normal
 		glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 
-		//set up for bounding box collisions
-		vector<BoundingBox*> boxes;
-
 		//Terrain
 		glUniform1i(texture_option, 5);
 		terrain.render(transformLoc, 0.0f);
 		glUniform1i(texture_option, 6);
 		road.render(transformLoc, 0.01f);
-
-		//Draw the textured cube and instances
-		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, camera->getCameraBuildingScales(), camera->getCameraBuildingTexture());
-
-		//set the boxes for camera collision
-		camera->setCameraBoxes(boxes);
 
 		// Free bounding boxes memory
 		while (boxes.size() > 0)
@@ -299,6 +293,12 @@ int main()
 			delete boxes[boxes.size() - 1];
 			boxes.pop_back();
 		}
+
+		//Draw the textured cube and instances
+		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, camera->getCameraBuildingScales(), camera->getCameraBuildingTexture());
+
+		//set the boxes for camera collision
+		camera->setCameraBoxes(boxes);
 
 		// Swap the screen buffers
 		glfwSwapBuffers(window);
