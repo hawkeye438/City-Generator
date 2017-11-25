@@ -168,12 +168,6 @@ int main()
 	GLuint fog_end = glGetUniformLocation(shader_program.getShaderId(), "fogEnd");
 	GLuint fog_density = glGetUniformLocation(shader_program.getShaderId(), "fogDensity");
 
-	glUniform1i(fog_option, 1);
-	glUniform1i(fog_debug_depth, 0);
-	glUniform1f(fog_start, 10.0f);
-	glUniform1f(fog_end, 35.0f);
-	glUniform1f(fog_density, 0.04f);
-
 	//Camera set up
 	glm::vec3 eye(0.0f, 10.0f, 50.0f);
 	glm::vec3 center(0.0f, 0.0f, -1.0f);
