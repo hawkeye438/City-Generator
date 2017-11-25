@@ -72,48 +72,99 @@ vec4 applyFog()
 	return vec4(mix(fogColour, vec3(color), fogFactor), color[3]);
 }
 
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // check whether current frag pos is in shadow
+    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+	if(projCoords.z > 1.0)
+        shadow = 0.0;
+
+    return shadow;
+} 
+
+struct PointLight {      
+
+	vec3 position;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+	
+	float constant;
+    float linear;
+    float quadratic;
+};
+#define NR_POINT_LIGHTS 26  
+uniform PointLight pointLights[NR_POINT_LIGHTS];
+
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 lightColour, float shadow)
+{
+    vec3 lightDir = normalize(light.position - fragPos);
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    // attenuation
+    float distance    = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + 
+  			     light.quadratic * (distance * distance));    
+    // combine results
+    vec3 ambient  = light.ambient  * lightColour;
+    vec3 diffuse  = (1.0 - shadow) * light.diffuse  * diff * lightColour;
+    vec3 specular = (1.0 - shadow) * light.specular * spec * lightColour;
+    ambient  *= attenuation;
+    diffuse  *= attenuation;
+    specular *= attenuation;
+    return (ambient + diffuse + specular);
+} 
+
 void main()
 {	//UV scaling for repeated texture rather than texture stretching
 	vec4 UV = vec4(outUV, 0.0f, 0.0f);//convert to vec4
 	vec4 newUV = textureMatrix * UV;//Scale the UV by x and y
 	vec2 lastUV = vec2(newUV);//convert to vec2
 	
+	vec3 norm = normalize(outNormal);
+	vec3 viewDir = normalize(viewPosition - fragPosition);
+	
 	//must not have 4 arguments
 	//vec3 cubeColour = vec3(1.0f, 0.8f, 0.8f);
 	vec3 cubeColour = vec3(1.0f, 1.0f, 1.0f);
-	vec3 lightColour = vec3(1.0f, 1.0f, 1.0f);
 	
 	//Shadows
-	float bias = 0.005;
-	float visibility = 1.0f;
-	if ( texture( shadowMap, ShadowCoord.xy ).z  <  ShadowCoord.z){
-		visibility = 0.3f;
+	//float bias = 0.005;
+	//float visibility = 1.0f;
+	//if ( texture( shadowMap, ShadowCoord.xy ).z  <  ShadowCoord.z){
+	//	visibility = 0.3f;
+	//}
+	
+    vec3 lightColour[26];
+	lightColour[0] = vec3(0.13333333f, 0.23921569f, 0.41960784f);
+	//lightColour[0] = vec3(1.0f, 1.0f, 1.0f);
+	
+	for (int i = 1; i < 26; i++) {
+		lightColour[i] = vec3(0.81f, 0.64f, 0.07f);
 	}
 	
-   
-	//ambient lighting
-	float ambientStrength = 0.3f;
-	vec3 ambient_contribution = ambientStrength * lightColour;
+	vec3 finalColour;
+	vec3 lamp;
 	
-	// diffuse lighting
-	//vec3 lightPosition = vec3(2.0f,0.5f,-1.0f); // coordinates in the x,y,z axis
-	vec3 norm = normalize(outNormal);
+	float shadow = 0.0f;
+    //float shadow = ShadowCalculation(ShadowCoord);
+
+	//lamp = vec3(1.0f, 1.0f, 1.0f);
+	for(int i = 0; i < NR_POINT_LIGHTS; i++)
+        lamp += CalcPointLight(pointLights[i], norm, fragPosition, viewDir, lightColour[i], shadow);
 	
-	vec3 light_direction = normalize(lightPosition - fragPosition);
-	float indident_degree = max(dot(norm, light_direction), 0.0f);
-	vec3 diffuse_contribution = visibility * indident_degree * lightColour;
-	
-	// specular lighting
-	float specularStrength = 0.8f;
-	//vec3(2.0f,0.5f,1.5f)
-	vec3 viewDir = normalize(viewPosition - fragPosition);
-	vec3 reflect_direction = reflect(-light_direction, norm);
-	float spec = pow(max(dot(viewDir, reflect_direction), 0.0), 32);
-	
-	vec3 specular = visibility * specularStrength * spec * lightColour;
-	
-	vec3 finalColour = (ambient_contribution + diffuse_contribution + specular) * cubeColour;
-	//vec3 finalColour =  cubeColour;//to disable lights
+	finalColour = lamp * cubeColour;
 
 	if (drawingSkybox) {
 		color = texture(skybox, skyboxCoord);

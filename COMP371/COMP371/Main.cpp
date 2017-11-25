@@ -22,6 +22,9 @@
 #include "Classes/Utility.h"
 #include "Classes/CubePrimitive.h"
 #include "Classes/Building.h"
+#include "Classes/Lighting.h"
+#include "Classes/SpherePrimitive.h"
+#include "Classes/Shadow.h"
 
 using namespace std;
 
@@ -94,6 +97,20 @@ int main()
 	//configure global opengl state
 	glEnable(GL_DEPTH_TEST);
 
+	//Create moon (sphere)
+	std::vector<glm::vec3> sphere_vertices;
+	std::vector<glm::vec3> sphere_normals;
+	std::vector<glm::vec2> sphere_UVs;
+	loadOBJ("sphere.obj", sphere_vertices, sphere_normals, sphere_UVs); //read the vertices from the sphere.obj file
+
+	GLuint sphere_vao, sphere_vbo, sphere_ebo; //You can add more VAOs/VBO for different objects
+	glGenVertexArrays(1, &sphere_vao);
+	glGenBuffers(1, &sphere_vbo);
+	glGenBuffers(1, &sphere_ebo);
+
+	SpherePrimitive moon = SpherePrimitive();
+	moon.bindSphere(sphere_vao, sphere_vertices, sphere_normals, sphere_UVs);
+
 	//Building created from cubes
 	//4.5 ratio to city dimension to populate the entire city
 	Building buildings;
@@ -109,30 +126,28 @@ int main()
 	int city_dim = (int) ceil(4.5 * num_of_building);
 	road.loadTerrain(city_dim, city_dim);//width and height of terrain
 
+	//Initialize the lighting
+	Lighting lights = Lighting();
+	lights.setLightPositions(5, 5);
+	lights.setLightAttributes();
+
+	glm::vec3 *light_positions;
+	glm::vec3 *ambient_values;
+
+	light_positions = lights.getLightPositions();
+	ambient_values = lights.getLightAmbient();
+
 	//Shadows
 	//The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
 	unsigned int depthMapFBO;
 	glGenFramebuffers(1, &depthMapFBO);
 
-	// Depth texture. Slower than a depth buffer, but you can sample it later in your shader
+	// Depth texture for shadowing
 	GLuint depthMap;
 	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glViewport(0, 0, 1024, 1024);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	Shadow shadow = Shadow();
+	shadow.bindDepthMap(depthMapFBO, depthMap);
 
 	//texturizing
 	Texture::loadTexture(1, "building1.jpg", shader_program.getShaderId(), "textureNumber[0]");//texture1
@@ -204,40 +219,8 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		float time1 = glfwGetTime();
-		float movementz1 = sin(time1);
-		float movementx1 = cos(time1);
-
-		glm::vec3 light_pers(movementx1, 0.0, movementz1);
-
-		// Render scene from light's perspective
-		glm::vec3 lightInvDir = glm::vec3(-2.0f, 4.0f, -1.0f);
-
-		float near_plane = 1.0f, far_plane = 10.0f;
-		glm::mat4 depthProjectionMatrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-		glm::mat4 depthViewMatrix = glm::lookAt(light_pers, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-		glm::mat4 depthModelMatrix = glm::mat4(1.0);
-		glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix;
-
-		glm::mat4 biasMatrix(
-			0.5, 0.0, 0.0, 0.0,
-			0.0, 0.5, 0.0, 0.0,
-			0.0, 0.0, 0.5, 0.0,
-			0.5, 0.5, 0.5, 1.0
-		);
-		glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
-		glUniformMatrix4fv(depthBiasMatrixID, 1, GL_FALSE, glm::value_ptr(depthBiasMVP));
-
-		glViewport(0, 0, 1024, 1024);
-		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, woodTexture);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		// reset viewport
-		glViewport(0, 0, 1024, 1024);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// 1. Render scene from light's perspective for shadows
+		shadow.renderDepthMap(depthMapFBO, depthBiasMatrixID);
 
 		// 2. render scene as normal using the generated depth/shadow map 
 		glViewport(0, 0, 1024, 1024);
@@ -251,23 +234,8 @@ int main()
 
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
 
-		//Create light
-		glm::mat4 light;
-		float time = glfwGetTime();
-		float movementz = sin(time);
-		float movementx = cos(time);
-		light = glm::translate(light, glm::vec3(3 * movementx, 2.0f, 3 * movementz));
-		//Pass view position for specular lighting
-		glUniform3fv(view_pos, 1, glm::value_ptr(eye));
-		glUniformMatrix4fv(light_pos, 1, GL_FALSE, glm::value_ptr(light));
-
-		//Shadows
-		//Send our transformation to the currently bound shader,
-		//in the "MVP" uniform
-		glUniformMatrix4fv(depthBiasMatrixID, 1, GL_FALSE, glm::value_ptr(depthBiasMVP));
-		//glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]);
-		glActiveTexture(GL_TEXTURE7);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
+		//Draw the lights
+		lights.render(shader_program, light_positions, ambient_values);
 		
 		//skybox
 		skybox.render(view_matrix, viewMatrixLoc, drawing_skybox_id);
@@ -290,6 +258,17 @@ int main()
 
 		//Draw the textured cube and instances
 		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, camera->getCameraBuildingScales(), camera->getCameraBuildingTexture());
+
+		//Render moon
+		glBindVertexArray(sphere_vao);
+
+		glm::mat4 sphere;
+		sphere = glm::translate(sphere, light_positions[0]);
+		sphere = glm::scale(sphere, glm::vec3(2.0f)); // Make it a smaller cube
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(sphere));
+		glDrawArrays(GL_TRIANGLES, 0, sphere_vertices.size());
+
+		glBindVertexArray(0);
 
 		//set the boxes for camera collision
 		camera->setCameraBoxes(boxes);
