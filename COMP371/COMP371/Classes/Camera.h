@@ -18,6 +18,7 @@ class Camera {
 	enum fogMode {
 		LINEAR = 1,
 		EXP,
+		EXPSQUARED,
 		SCATTERING,
 		NONE
 	};
@@ -41,9 +42,9 @@ class Camera {
 	// Fog attributes
 	fogMode currentFogMode;
 	bool fogDebugValue;
-	float fogStart = 10;
-	float fogEnd = 35;
-	float fogDensity = 0.04;
+	float fogStart;
+	float fogEnd;
+	float fogDensity;
 	GLuint fog_option;
 	GLuint fog_debug;
 	GLuint fog_start;
@@ -75,6 +76,14 @@ public:
 
 		currentFogMode = LINEAR;
 		fogDebugValue = false;
+		fogStart = 10.0f;
+		fogEnd = 35.0f;
+		fogDensity = 0.04f;
+		glUniform1i(fog_option, currentFogMode);
+		glUniform1i(fog_debug, fogDebugValue);
+		glUniform1f(fog_start, fogStart);
+		glUniform1f(fog_end, fogEnd);
+		glUniform1f(fog_density, fogDensity);
 	}
 	~Camera() {}
 

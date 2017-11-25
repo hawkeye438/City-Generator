@@ -128,11 +128,11 @@ void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, i
 			break;
 		case GLFW_KEY_K: // Show debug info
 			cout << "Fog debug info:" << endl;
-			cout << "\t- option: " << currentFogMode << endl;
-			cout << "\t- debug: " << boolalpha << fogDebugValue << noboolalpha << endl;
-			cout << "\t- start: " << fogStart << endl;
-			cout << "\t- end: " << fogEnd << endl;
-			cout << "\t- density: " << fogDensity << endl;
+			cout << "\t- option (U): " << currentFogMode << endl;
+			cout << "\t- debug (J): " << boolalpha << fogDebugValue << noboolalpha << endl;
+			cout << "\t- start (O): " << fogStart << endl;
+			cout << "\t- end (P): " << fogEnd << endl;
+			cout << "\t- density (I): " << fogDensity << endl;
 			break;
 		default:
 			break;

@@ -60,8 +60,10 @@ vec4 applyFog()
 	if (fogOption == 1) // Linear fog
 		fogFactor = clamp((fogEnd - dist) / (fogEnd - fogStart), 0.0, 1.0);
 	else if (fogOption == 2) // Exponential fog
+		fogFactor = clamp(1.0 / exp((dist * fogDensity)), 0.0, 1.0);
+	else if (fogOption == 3) // Exponential squared fog
 		fogFactor = clamp(1.0 / exp((dist * fogDensity) * (dist * fogDensity)), 0.0, 1.0);
-	else if (fogOption == 3) // Exponential fog split (extinction/inscattering)
+	else if (fogOption == 4) // Exponential fog split (extinction/inscattering)
 		return scatteringFog(dist);
 	else
 		return color;
