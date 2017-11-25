@@ -120,9 +120,12 @@
     <ClInclude Include="Classes\Building.h" />
     <ClInclude Include="Classes\Camera.h" />
     <ClInclude Include="Classes\CubePrimitive.h" />
+    <ClInclude Include="Classes\Lighting.h" />
     <ClInclude Include="Classes\MyWindow.h" />
     <ClInclude Include="Classes\Shader.h" />
+    <ClInclude Include="Classes\Shadow.h" />
     <ClInclude Include="Classes\Skybox.h" />
+    <ClInclude Include="Classes\SpherePrimitive.h" />
     <ClInclude Include="Classes\Terrain.h" />
     <ClInclude Include="Classes\Texture.h" />
     <ClInclude Include="Classes\Utility.h" />
@@ -135,8 +138,11 @@
     <ClCompile Include="Classes\Building.cpp" />
     <ClCompile Include="Classes\Camera.cpp" />
     <ClCompile Include="Classes\CubePrimitive.cpp" />
+    <ClCompile Include="Classes\Lighting.cpp" />
     <ClCompile Include="Classes\Shader.cpp" />
+    <ClCompile Include="Classes\Shadow.cpp" />
     <ClCompile Include="Classes\Skybox.cpp" />
+    <ClCompile Include="Classes\SpherePrimitive.cpp" />
     <ClCompile Include="Classes\Terrain.cpp" />
     <ClCompile Include="Classes\Texture.cpp" />
     <ClCompile Include="Main.cpp" />

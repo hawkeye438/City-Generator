@@ -263,3 +263,4 @@ __pycache__/
 
 # Custom rules
 !cube.obj
+!sphere.obj

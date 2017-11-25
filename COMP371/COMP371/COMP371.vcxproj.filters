@@ -34,6 +34,9 @@
     <ClCompile Include="Classes\Building.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Classes\Lighting.cpp" />
+    <ClCompile Include="Classes\Shadow.cpp" />
+    <ClCompile Include="Classes\SpherePrimitive.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -75,6 +78,9 @@
     <ClInclude Include="Classes\Building.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Classes\Lighting.h" />
+    <ClInclude Include="Classes\Shadow.h" />
+    <ClInclude Include="Classes\SpherePrimitive.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.shader" />
