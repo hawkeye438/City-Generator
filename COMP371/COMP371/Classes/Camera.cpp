@@ -216,21 +216,34 @@ void Camera::setLoopCoord(int x, int z) {
 void Camera::checkLoopPos() {
 	if (eye.x < min_xd) {
 		eye.x = max_xd;
+		generateNewBuildingSetting();
 	}
 	if (eye.x > max_xd) {
 		eye.x = min_xd;
+		generateNewBuildingSetting();
 	}
 	if (eye.z < min_zd) {
 		eye.z = max_zd;
+		generateNewBuildingSetting();
 	}
 	if (eye.z > max_zd) {
 		eye.z = min_zd;
+		generateNewBuildingSetting();
 	}
 }
 
 void Camera::setBuildingTextureScale(int tb) {
-	cout << "running";
 	total_buildings = tb;
+	buildingRandomizer();
+}
+
+void Camera::generateNewBuildingSetting() {
+	building_scales.clear();
+	random_texture.clear();
+	buildingRandomizer();
+}
+
+void Camera::buildingRandomizer() {
 	uniform_int_distribution<> disti(1, 5); // create distribution for integers
 	uniform_real_distribution<float> distf(0.0, 1.0); // create distribution for floats
 	uniform_int_distribution<> distTexture(1, 4); // create distribution for integers

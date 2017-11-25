@@ -93,6 +93,7 @@ public:
 	void setBuildingTextureScale(int tb);
 	vector<glm::vec3> getCameraBuildingScales() const { return building_scales;}
 	vector<int> getCameraBuildingTexture() const { return random_texture; }
-
+	void generateNewBuildingSetting();
+	void buildingRandomizer();
 };
 #endif
