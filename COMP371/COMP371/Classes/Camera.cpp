@@ -11,7 +11,20 @@ void Camera::setLookAt(glm::mat4 &view_matrix, GLuint viewMatrixLoc) {
 	glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 }
 
-//Working but still testing
+//set min/max coordinates for x and z to loop back on itself
+void Camera::setLoopCoord(int x, int z) {
+	float offset = 1.0;//for now
+	min_xd = -x + offset;
+	max_xd = x - offset;
+	min_zd = -z + offset;
+	max_zd = z - offset;
+}
+
+void Camera::setBuildingTextureScale(int tb) {
+	total_buildings = tb;
+	buildingRandomizer();
+}
+
 void Camera::checkCollision(glm::vec3 point, float offset, int value) {
 	for (int i = 0; i < boxes.size(); i++) {
 		if (boxes[i]->intersect(point, offset)) {
@@ -38,6 +51,26 @@ void Camera::checkCollision(glm::vec3 point, float offset, int value) {
 void Camera::checkTerrainCollision() {//establish a boundary that camera can't pass for terrain
 	if (eye.y < terrain_bounds) {
 		eye.y = terrain_bounds;
+	}
+}
+
+//restrict camera to an area and change position to opposite ends when passign min/max coordinates
+void Camera::checkLoopPos() {
+	if (eye.x < min_xd) {
+		eye.x = max_xd;
+		generateNewBuildingSetting();
+	}
+	if (eye.x > max_xd) {
+		eye.x = min_xd;
+		generateNewBuildingSetting();
+	}
+	if (eye.z < min_zd) {
+		eye.z = max_zd;
+		generateNewBuildingSetting();
+	}
+	if (eye.z > max_zd) {
+		eye.z = min_zd;
+		generateNewBuildingSetting();
 	}
 }
 
@@ -195,40 +228,6 @@ void  Camera::cameraMouseButtons(GLFWwindow* window, int button, int action, int
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
 		mouseButtonLeftDown = false;
 	}
-}
-
-//set min/max coordinates for x and z to loop back on itself
-void Camera::setLoopCoord(int x, int z) {
-	float offset = 1.0;//for now
-	min_xd = -x + offset;
-	max_xd = x - offset;
-	min_zd = -z + offset;
-	max_zd = z - offset;
-}
-
-//restrict camera to an area and change position to opposite ends when passign min/max coordinates
-void Camera::checkLoopPos() {
-	if (eye.x < min_xd) {
-		eye.x = max_xd;
-		generateNewBuildingSetting();
-	}
-	if (eye.x > max_xd) {
-		eye.x = min_xd;
-		generateNewBuildingSetting();
-	}
-	if (eye.z < min_zd) {
-		eye.z = max_zd;
-		generateNewBuildingSetting();
-	}
-	if (eye.z > max_zd) {
-		eye.z = min_zd;
-		generateNewBuildingSetting();
-	}
-}
-
-void Camera::setBuildingTextureScale(int tb) {
-	total_buildings = tb;
-	buildingRandomizer();
 }
 
 void Camera::generateNewBuildingSetting() {

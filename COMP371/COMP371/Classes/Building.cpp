@@ -18,7 +18,6 @@ void Building::createBuildings(int num) {
 }
 
 void Building::render(vector<BoundingBox*> &b, GLuint transformLoc, GLuint texture_option, GLuint texture_matrix, GLuint scale_UV, int city_dim, vector<glm::vec3> building_scales, vector<int> random_texture) {
-	float scale = 1.0f;//testing
 	float x_translate;
 	float x_reset;
 	float z_translate;
@@ -57,7 +56,6 @@ void Building::render(vector<BoundingBox*> &b, GLuint transformLoc, GLuint textu
 			BoundingBox* temp = new BoundingBox(current_min, current_max);
 			b.push_back(temp);
 
-			//scale += 1.0f;
 			x_translate += building_space;
 		}
 

@@ -8,8 +8,6 @@
 #include <vector>
 
 class Utility {
-
-
 public:
 	static void setMinMaxVert(float &min_x, float &max_x, float &min_y, float &max_y, float &min_z, float &max_z, std::vector<glm::vec3> vertices) {
 		min_x = max_x = vertices[0].x;

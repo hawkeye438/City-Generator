@@ -81,16 +81,17 @@ public:
 	void setCameraBoxes(vector<BoundingBox*> b) { boxes = b; }
 	void setPerspective(float fov, GLfloat aspect, GLfloat near, GLfloat far, GLuint projectionLoc);
 	void setLookAt(glm::mat4 &view_matrix, GLuint viewMatrixLoc);
+	void setLoopCoord(int x, int z);
+	void setBuildingTextureScale(int tb);
 
 	void checkCollision(glm::vec3 point, float offset, int value);
 	void checkTerrainCollision();
+	void checkLoopPos();
+
 	void cameraKeys(GLFWwindow* window, int key, int scancode, int action, int mode);
 	void cameraMouse(GLFWwindow* window, double xpos, double ypos);
 	void cameraMouseButtons(GLFWwindow* window, int button, int action, int mods);
 
-	void setLoopCoord(int x, int z);
-	void checkLoopPos();
-	void setBuildingTextureScale(int tb);
 	vector<glm::vec3> getCameraBuildingScales() const { return building_scales;}
 	vector<int> getCameraBuildingTexture() const { return random_texture; }
 	void generateNewBuildingSetting();
