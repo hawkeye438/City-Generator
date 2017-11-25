@@ -227,3 +227,24 @@ void Camera::checkLoopPos() {
 		eye.z = min_zd;
 	}
 }
+
+void Camera::setBuildingTextureScale(int tb) {
+	cout << "running";
+	total_buildings = tb;
+	uniform_int_distribution<> disti(1, 5); // create distribution for integers
+	uniform_real_distribution<float> distf(0.0, 1.0); // create distribution for floats
+	uniform_int_distribution<> distTexture(1, 4); // create distribution for integers
+	int num_of_building = sqrt(total_buildings);
+
+	for (int i = 0; i < num_of_building; i++) {
+		for (int j = 0; j < num_of_building; j++) {
+			glm::vec3 tmp(distf(engine), (float)disti(engine), distf(engine));
+			building_scales.push_back(tmp);
+		}
+	}
+
+	for (int k = 0; k < total_buildings; k++) {
+		int tmp = distTexture(engine);
+		random_texture.push_back(tmp);
+	}
+}

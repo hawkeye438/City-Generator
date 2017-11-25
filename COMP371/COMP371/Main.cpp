@@ -30,8 +30,6 @@ const GLuint WIDTH = 1024, HEIGHT = 1024;
 
 //scaling
 glm::vec3 triangle_scale;
-std::random_device rd; // create object for seeding
-std::mt19937 engine; // create engine and seed it
 
 //redirect functions
 auto func = [](GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -102,25 +100,6 @@ int main()
 	int num_of_building = 12;
 	int total_buildings = num_of_building * num_of_building;
 	buildings.createBuildings(total_buildings);
-	cout << total_buildings << endl;
-
-	engine = mt19937(rd());
-	uniform_int_distribution<> disti(1, 5); // create distribution for integers
-	uniform_real_distribution<float> distf(0.0, 1.0); // create distribution for floats
-	vector<glm::vec3> building_scales;
-	for (int i = 0; i < num_of_building; i++) {
-		for (int j = 0; j < num_of_building; j++) {
-			glm::vec3 tmp(distf(engine), (float)disti(engine), distf(engine));
-			building_scales.push_back(tmp);
-		}
-	}
-
-	uniform_int_distribution<> distTexture(1, 4); // create distribution for integers
-	vector<int> random_texture;
-	for (int k = 0; k < total_buildings; k++) {
-		int tmp = distTexture(engine);
-		random_texture.push_back(tmp);
-	}
 
 	//Terrain
 	Terrain terrain;
@@ -203,7 +182,9 @@ int main()
 	camera->setPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f, projectionLoc);
 	//set loop coord
 	camera->setLoopCoord(40,40);//half the length and width of the scaled terrain for now
-	
+	//set build scales and texture
+	camera->setBuildingTextureScale(total_buildings);
+
 	// Set window pointer to the window we want and then set callbacks using our redirection functions
 	MyWindow* myWindow = new MyWindow(camera);
 	glfwSetWindowUserPointer(window, myWindow);
@@ -307,7 +288,7 @@ int main()
 		road.render(transformLoc, 0.01f);
 
 		//Draw the textured cube and instances
-		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, building_scales, random_texture);
+		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, camera->getCameraBuildingScales(), camera->getCameraBuildingTexture());
 
 		//set the boxes for camera collision
 		camera->setCameraBoxes(boxes);

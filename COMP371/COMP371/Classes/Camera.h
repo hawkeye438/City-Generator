@@ -9,6 +9,7 @@
 #include "gtc/type_ptr.hpp"
 #include <iostream>
 #include <vector>
+#include <random>
 #include "BoundingBox.h"
 
 using namespace std;
@@ -29,6 +30,13 @@ class Camera {
 	float yaw, pitch;
 	vector<BoundingBox*> boxes;
 	float min_xd, max_xd, min_zd, max_zd;
+
+	//buildings
+	vector<glm::vec3> building_scales;
+	vector<int> random_texture;
+	std::random_device rd; // create object for seeding
+	std::mt19937 engine; // create engine and seed it
+	int total_buildings;
 
 	// Fog attributes
 	fogMode currentFogMode;
@@ -62,6 +70,9 @@ public:
 		min_zd = 0.0f;
 		max_zd = 0.0f;
 
+		engine = mt19937(rd());
+		total_buildings = 0;
+
 		currentFogMode = LINEAR;
 		fogDebugValue = false;
 	}
@@ -79,6 +90,9 @@ public:
 
 	void setLoopCoord(int x, int z);
 	void checkLoopPos();
+	void setBuildingTextureScale(int tb);
+	vector<glm::vec3> getCameraBuildingScales() const { return building_scales;}
+	vector<int> getCameraBuildingTexture() const { return random_texture; }
 
 };
 #endif
