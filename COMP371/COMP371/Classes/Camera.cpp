@@ -15,7 +15,6 @@ void Camera::setLookAt(glm::mat4 &view_matrix, GLuint viewMatrixLoc) {
 void Camera::checkCollision(glm::vec3 point, float offset, int value) {
 	for (int i = 0; i < boxes.size(); i++) {
 		if (boxes[i]->intersect(point, offset)) {
-			cout << "intersecting working" << endl;
 			switch (value) {
 			case 1: eye -= mv_distance * center;
 				break;
@@ -31,12 +30,7 @@ void Camera::checkCollision(glm::vec3 point, float offset, int value) {
 				break;
 			}
 			//to see where it is colliding
-			cout << "eye coord" << endl;
-			cout << eye.x << "," << eye.y << "," << eye.z << endl;
-			cout << "object bounds" << endl;
-			cout << boxes[i]->getMinExtent().x << "," << boxes[i]->getMaxExtent().x << endl;
-			cout << boxes[i]->getMinExtent().y << "," << boxes[i]->getMaxExtent().y << endl;
-			cout << boxes[i]->getMinExtent().z << "," << boxes[i]->getMaxExtent().z << endl;
+			cout << "Collision" << endl;
 		}
 	}
 }
@@ -82,14 +76,14 @@ void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, i
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {//Up
-		eye.y += 0.1f;
+		eye.y += mv_distance;
 		value = 5;
 		checkCollision(eye, offset, value);
 		checkTerrainCollision();
 		checkLoopPos();
 	}
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {//Down
-		eye.y -= 0.05f;
+		eye.y -= mv_distance;
 		value = 6;
 		checkCollision(eye, offset, value);
 		checkTerrainCollision();
@@ -205,7 +199,7 @@ void  Camera::cameraMouseButtons(GLFWwindow* window, int button, int action, int
 
 //set min/max coordinates for x and z to loop back on itself
 void Camera::setLoopCoord(int x, int z) {
-	float offset = 1.0;//for testing
+	float offset = 1.0;//for now
 	min_xd = -x + offset;
 	max_xd = x - offset;
 	min_zd = -z + offset;

@@ -103,7 +103,7 @@ int main()
 
 	//Terrain
 	Terrain terrain;
-	terrain.loadTerrain(100,100);//width and heeight of terrain
+	terrain.loadTerrain(250,250);//width and height of terrain
 
 	Terrain road;
 	int city_dim = (int) ceil(4.5 * num_of_building);
@@ -175,13 +175,13 @@ int main()
 	glUniform1f(fog_density, 0.04f);
 
 	//Camera set up
-	glm::vec3 eye(0.0f, 20.0f, 3.0f);
+	glm::vec3 eye(0.0f, 10.0f, 50.0f);
 	glm::vec3 center(0.0f, 0.0f, -1.0f);
 	glm::vec3 up(0.0f, 1.0f, 0.0f);
 	Camera* camera = new Camera(eye, center, up, fog_option, fog_debug_depth, fog_start, fog_end, fog_density);//boxes to test camera collision with world objects
-	camera->setPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f, projectionLoc);
+	camera->setPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 50.0f, projectionLoc);
 	//set loop coord
-	camera->setLoopCoord(40,40);//half the length and width of the scaled terrain for now
+	camera->setLoopCoord(72,72);//value that has the smoothest effect against 250 x 250 terrain
 	//set build scales and texture
 	camera->setBuildingTextureScale(total_buildings);
 
