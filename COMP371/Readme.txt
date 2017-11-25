@@ -100,7 +100,6 @@ Controls (All controls are handle in Camera Class)
 ---Mouse---
 -----------
 
---Left or Middle or Right Mouse buttons
 -Rotates camera base on mouse cursor direction
 
 -----------
