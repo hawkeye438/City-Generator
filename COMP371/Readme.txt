@@ -100,7 +100,11 @@ Controls (All controls are handle in Camera Class)
 ---Mouse---
 -----------
 
--Rotates camera base on mouse cursor direction
+--Hold Left or Middle or Right Mouse buttons--
+-Rotates camera base on mouse cursor direction.
+
+--SPACEBAR--
+-Lock the cursor into the screen and rotates the camera base on mouse cursor direction.
 
 -----------
 ----Fog----
