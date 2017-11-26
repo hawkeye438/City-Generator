@@ -2,6 +2,12 @@
 
 void Camera::setPerspective(float fov, GLfloat aspect, GLfloat near, GLfloat far, GLuint projectionLoc) {
 	glm::mat4 projection_matrix;
+
+	current_fov = fov;
+	current_aspect = aspect;
+	current_near = near;
+	current_far = far;
+	projection_location = projectionLoc;
 	projection_matrix = glm::perspective(fov, aspect, near, far);
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 }
@@ -173,19 +179,40 @@ void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, i
 
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, 1);
+
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+		{
+			mouseLocked = !mouseLocked;
+			glfwSetInputMode(window, GLFW_CURSOR, mouseLocked ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+		}
+
+		if (key == GLFW_KEY_BACKSPACE && action == GLFW_PRESS)
+		{
+			cout << "Camera view options:" << endl;
+			int width, height;
+			glfwGetFramebufferSize(window, &width, &height);
+			cout << "\t- Framebuffer size: " << width << "x" << height << endl;
+			cout << "\t- FOV: " << current_fov << endl;
+			cout << "\t- Aspect: " << current_aspect << endl;
+			cout << "\t- Near plane: " << current_near << endl;
+			cout << "\t- Far plane: " << current_far << endl;
+		}
 	}
 }
 
 void Camera::cameraMouse(GLFWwindow* window, double xpos, double ypos) {
 	float xoffset;
 	float yoffset;
-	float sensitivity = 0.005;
+	float sensitivity = 0.025;
 	//if either of the mouse buttons are pressed
-	if (mouseButtonRightDown || mouseButtonMiddleDown || mouseButtonLeftDown) {
+	if (mouseLocked || mouseButtonRightDown || mouseButtonMiddleDown || mouseButtonLeftDown) {
 		xoffset = xpos_click - xpos;
 		yoffset = ypos_click - ypos;
 		xoffset *= sensitivity;
 		yoffset *= sensitivity;
+
+		if (mouseLocked)
+			xoffset *= -1;
 
 		yaw += xoffset;
 		pitch += yoffset;
@@ -201,6 +228,9 @@ void Camera::cameraMouse(GLFWwindow* window, double xpos, double ypos) {
 		front.y = sin(glm::radians(pitch));
 		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 		center = glm::normalize(front);
+
+		xpos_click = xpos;
+		ypos_click = ypos;
 	}
 }
 
@@ -228,6 +258,12 @@ void  Camera::cameraMouseButtons(GLFWwindow* window, int button, int action, int
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
 		mouseButtonLeftDown = false;
 	}
+}
+
+void Camera::cameraResize(GLFWwindow * window, int width, int height)
+{
+	glViewport(0, 0, width, height);
+	setPerspective(current_fov, static_cast<float>(width)/static_cast<float>(height), current_near, current_far, projection_location);
 }
 
 void Camera::generateNewBuildingSetting() {

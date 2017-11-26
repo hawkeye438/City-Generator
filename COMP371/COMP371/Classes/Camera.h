@@ -24,13 +24,20 @@ class Camera {
 	};
 
 	glm::vec3 eye, center, up;
-	bool mouseButtonRightDown, mouseButtonMiddleDown, mouseButtonLeftDown;
+	bool mouseButtonRightDown, mouseButtonMiddleDown, mouseButtonLeftDown, mouseLocked;
 	double xpos_click, ypos_click;
 	float mv_distance;
 	float terrain_bounds;
 	float yaw, pitch;
 	vector<BoundingBox*> boxes;
 	float min_xd, max_xd, min_zd, max_zd;
+
+	// Camera view settings
+	float current_fov;
+	GLfloat current_aspect;
+	GLfloat current_near;
+	GLfloat current_far;
+	GLuint projection_location;
 
 	//buildings
 	vector<glm::vec3> building_scales;
@@ -59,6 +66,7 @@ public:
 		mouseButtonRightDown = false;
 		mouseButtonMiddleDown = false;
 		mouseButtonLeftDown = false;
+		mouseLocked = false;
 		xpos_click = 0.0f;
 		ypos_click = 0.0f;
 		mv_distance = 1.0f;
@@ -100,6 +108,7 @@ public:
 	void cameraKeys(GLFWwindow* window, int key, int scancode, int action, int mode);
 	void cameraMouse(GLFWwindow* window, double xpos, double ypos);
 	void cameraMouseButtons(GLFWwindow* window, int button, int action, int mods);
+	void cameraResize(GLFWwindow* window, int width, int height);
 
 	vector<glm::vec3> getCameraBuildingScales() const { return building_scales;}
 	vector<int> getCameraBuildingTexture() const { return random_texture; }

@@ -50,6 +50,11 @@ auto func3 = [](GLFWwindow* window, int button, int action, int mods)
 	static_cast<MyWindow*>(glfwGetWindowUserPointer(window))->cameraMouseButtonsControls(window, button, action, mods);
 };
 
+auto func4 = [](GLFWwindow* window, int width, int height)
+{
+	static_cast<MyWindow*>(glfwGetWindowUserPointer(window))->cameraResize(window, width, height);
+};
+
 int main()
 {
 	std::cout << "Starting GLFW context, OpenGL 3.3" << std::endl;
@@ -204,6 +209,7 @@ int main()
 	glfwSetKeyCallback(window, func);
 	glfwSetCursorPosCallback(window, func2);
 	glfwSetMouseButtonCallback(window, func3);
+	glfwSetFramebufferSizeCallback(window, func4);
 
 	//set up for bounding box collisions
 	vector<BoundingBox*> boxes;
@@ -222,8 +228,9 @@ int main()
 		// 1. Render scene from light's perspective for shadows
 		shadow.renderDepthMap(depthMapFBO, depthBiasMatrixID);
 
-		// 2. render scene as normal using the generated depth/shadow map 
-		glViewport(0, 0, 1024, 1024);
+		// 2. render scene as normal using the generated depth/shadow map
+		glfwGetFramebufferSize(window, &width, &height);
+		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 view_matrix;
