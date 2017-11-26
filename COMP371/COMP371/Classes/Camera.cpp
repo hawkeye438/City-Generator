@@ -203,7 +203,7 @@ void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, i
 void Camera::cameraMouse(GLFWwindow* window, double xpos, double ypos) {
 	float xoffset;
 	float yoffset;
-	float sensitivity = 0.025;
+	float sensitivity = 0.1;
 	//if either of the mouse buttons are pressed
 	if (mouseLocked || mouseButtonRightDown || mouseButtonMiddleDown || mouseButtonLeftDown) {
 		xoffset = xpos_click - xpos;
