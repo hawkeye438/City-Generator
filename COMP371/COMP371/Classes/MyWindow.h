@@ -14,5 +14,6 @@ public:
 	void cameraMouseControls(GLFWwindow* window, double xpos, double ypos) { camera->cameraMouse(window, xpos, ypos); }
 	void cameraMouseButtonsControls(GLFWwindow* window, int button, int action, int mods) { camera->cameraMouseButtons(window, button, action, mods); }
 	void cameraResize(GLFWwindow* window, int width, int height) { camera->cameraResize(window, width, height); }
+	void cameraLights(GLFWwindow* window, int key, int scancode, int action, int mode) { camera->lightingKeys(window, key, scancode, action, mode); };
 };
 #endif

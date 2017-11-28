@@ -11,6 +11,7 @@
 #include <vector>
 #include <random>
 #include "BoundingBox.h"
+#include "Lighting.h"
 
 using namespace std;
 
@@ -57,6 +58,10 @@ class Camera {
 	GLuint fog_start;
 	GLuint fog_end;
 	GLuint fog_density;
+
+	//Lighting attributes
+	Lighting* lights;
+	float ambientStrength;
 
 public:
 	Camera() {}
@@ -109,6 +114,8 @@ public:
 	void cameraMouse(GLFWwindow* window, double xpos, double ypos);
 	void cameraMouseButtons(GLFWwindow* window, int button, int action, int mods);
 	void cameraResize(GLFWwindow* window, int width, int height);
+	void setLightObject(Lighting* lights);
+	void lightingKeys(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 	vector<glm::vec3> getCameraBuildingScales() const { return building_scales;}
 	vector<int> getCameraBuildingTexture() const { return random_texture; }

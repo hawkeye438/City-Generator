@@ -38,6 +38,7 @@ glm::vec3 triangle_scale;
 auto func = [](GLFWwindow* window, int key, int scancode, int action, int mode)
 {
 	static_cast<MyWindow*>(glfwGetWindowUserPointer(window))->cameraControls(window, key, scancode, action, mode);
+	static_cast<MyWindow*>(glfwGetWindowUserPointer(window))->cameraLights(window, key, scancode, action, mode);
 };
 
 auto func2 = [](GLFWwindow* window, double xpos, double ypos)
@@ -131,17 +132,6 @@ int main()
 	int city_dim = (int) ceil(4.5 * num_of_building);
 	road.loadTerrain(city_dim, city_dim);//width and height of terrain
 
-	//Initialize the lighting
-	Lighting lights = Lighting();
-	lights.setLightPositions(5, 5);
-	lights.setLightAttributes();
-
-	glm::vec3 *light_positions;
-	glm::vec3 *ambient_values;
-
-	light_positions = lights.getLightPositions();
-	ambient_values = lights.getLightAmbient();
-
 	//Shadows
 	//The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
 	unsigned int depthMapFBO;
@@ -180,6 +170,7 @@ int main()
 	GLuint texture_matrix = glGetUniformLocation(shader_program.getShaderId(), "textureMatrix");
 	GLuint scale_UV = glGetUniformLocation(shader_program.getShaderId(), "scaleUV");
 	GLuint light_pos = glGetUniformLocation(shader_program.getShaderId(), "light_matrix");
+	GLuint specMatrixLoc = glGetUniformLocation(shader_program.getShaderId(), "view_specular_matrix");
 	GLuint view_pos = glGetUniformLocation(shader_program.getShaderId(), "viewPosition");
 	GLuint depthBiasMatrixID = glGetUniformLocation(shader_program.getShaderId(), "DepthBiasMVP");
 	GLuint fog_option = glGetUniformLocation(shader_program.getShaderId(), "fogOption");
@@ -187,6 +178,40 @@ int main()
 	GLuint fog_start = glGetUniformLocation(shader_program.getShaderId(), "fogStart");
 	GLuint fog_end = glGetUniformLocation(shader_program.getShaderId(), "fogEnd");
 	GLuint fog_density = glGetUniformLocation(shader_program.getShaderId(), "fogDensity");
+
+	//Initialize the lighting
+	Lighting* lights = new Lighting();
+	//City lights
+	glm::vec3 ambient(0.1f, 0.1f, 0.1f);
+	glm::vec3 diffuse(0.81f, 0.64f, 0.07f);
+	glm::vec3 specular(0.81f, 0.64f, 0.07f);
+	float cityAmbStrength = 0.5f;
+
+	lights->setCityLightPositions(5, 5);
+	lights->setCityLightAttributes(ambient, diffuse, specular);
+	lights->setCityAmbientStrength(cityAmbStrength);
+
+	//Sun
+	glm::vec3 sunPosition(-30.0f, 50.0f, -10.0f);
+	glm::vec3 sunAmbient(1.0f, 1.0f, 1.0f);
+	glm::vec3 sunDiffuse(1.0f, 1.0f, 1.0f);
+	glm::vec3 sunSpecular(1.0f, 1.0f, 1.0f);
+	float sunAmbStrength = 0.5f;
+
+	lights->setSunLightPosition(sunPosition);
+	lights->setSunLightAttributes(sunAmbient, sunDiffuse, sunSpecular);
+	lights->setSunAmbientStrength(sunAmbStrength);
+
+	//Moon
+	glm::vec3 moonEye(-100.0f, 100.0f, 100.0f);
+	glm::vec3 moonAmbient(0.878f, 1.0f, 1.0f);
+	glm::vec3 moonDiffuse(0.0f, 0.0f, 1.0f);
+	glm::vec3 moonSpecular(0.878f, 1.0f, 1.0f);
+	float moonAmbStrength = 0.5f;
+
+	lights->setMoonLightDirection(moonEye);
+	lights->setMoonLightAttributes(moonAmbient, moonDiffuse, moonSpecular);
+	lights->setMoonAmbientStrength(moonAmbStrength);
 
 	//Camera set up
 	glm::vec3 eye(0.0f, 10.0f, 50.0f);
@@ -198,6 +223,7 @@ int main()
 	camera->setLoopCoord(72,72);//value that has the smoothest effect against 250 x 250 terrain
 	//set build scales and texture
 	camera->setBuildingTextureScale(total_buildings);
+	camera->setLightObject(lights);
 
 	// Set window pointer to the window we want and then set callbacks using our redirection functions
 	MyWindow* myWindow = new MyWindow(camera);
@@ -242,7 +268,24 @@ int main()
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
 
 		//Draw the lights
-		lights.render(shader_program, light_positions, ambient_values);
+		glm::mat4 spec_matrix;
+		spec_matrix = glm::lookAt(eye, eye + center, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(specMatrixLoc, 1, GL_FALSE, glm::value_ptr(spec_matrix));
+
+		//Moon
+
+		double time = glfwGetTime();
+		float x = cos(time);
+		float y = sin(time);
+		glm::vec3 position(200*x, 50, 0.0f);
+		glm::vec3 diffuse(0.81f, 0.64f, 0.07f);
+
+		lights->setMoonLightDirection(moonEye);
+		//lights.setSunLightPosition(position);
+		//lights.setSunAmbientStrength(75.0f);
+		//lights.setLightDiffuse(0, diffuse);
+
+		lights->render(shader_program);
 		
 		//skybox
 		skybox.render(view_matrix, viewMatrixLoc, drawing_skybox_id);
@@ -266,11 +309,12 @@ int main()
 		//Draw the textured cube and instances
 		buildings.render(boxes, transformLoc, texture_option, texture_matrix, scale_UV, city_dim, camera->getCameraBuildingScales(), camera->getCameraBuildingTexture());
 
-		//Render moon
+		//Render sun
 		glBindVertexArray(sphere_vao);
 
 		glm::mat4 sphere;
-		sphere = glm::translate(sphere, light_positions[0]);
+		glm::vec3 sun_pos = lights->getSunLightPosition();
+		sphere = glm::translate(sphere, sun_pos);
 		sphere = glm::scale(sphere, glm::vec3(2.0f)); // Make it a smaller cube
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(sphere));
 		glDrawArrays(GL_TRIANGLES, 0, sphere_vertices.size());

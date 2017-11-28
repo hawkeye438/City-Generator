@@ -20,7 +20,7 @@ void Camera::setLookAt(glm::mat4 &view_matrix, GLuint viewMatrixLoc) {
 //set min/max coordinates for x and z to loop back on itself
 void Camera::setLoopCoord(int x, int z) {
 	float offset = 1.0;//for now
-	min_xd = -x + offset;
+	min_xd = -x + offset;	
 	max_xd = x - offset;
 	min_zd = -z + offset;
 	max_zd = z - offset;
@@ -288,5 +288,36 @@ void Camera::buildingRandomizer() {
 	for (int k = 0; k < total_buildings; k++) {
 		int tmp = distTexture(engine);
 		random_texture.push_back(tmp);
+	}
+}
+
+void Camera::setLightObject(Lighting* lights) {
+	this->lights = lights;
+}
+
+void Camera::lightingKeys(GLFWwindow* window, int key, int scancode, int action, int mode) {
+
+	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+		lights->pointAmbStrength[0] += 0.5f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
+		lights->pointAmbStrength[0] -= 0.5f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS) {
+		lights->moonAmbStrength += 0.05f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {
+		lights->moonAmbStrength -= 0.05f;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
+		for (int i = 1; i < 26; i++) {
+			lights->pointAmbStrength[i] += 0.05f;
+		}
+	}
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) {
+		for (int i = 1; i < 26; i++) {
+			lights->pointAmbStrength[i] -= 0.05f;
+		}
 	}
 }

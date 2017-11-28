@@ -24,6 +24,7 @@ uniform mat4 light_matrix;
 uniform mat4 model_matrix;
 uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
+uniform mat4 view_specular_matrix;
 
 void main()
 {
@@ -33,6 +34,7 @@ void main()
 	skyboxCoord = position;
 	outNormal = vec3(model_matrix * vec4(normal,0.0f));
 	fragPosition = vec3(model_matrix * vec4(position.x, position.y, position.z, 1.0)); 
-	lightPosition = vec3(light_matrix * vec4(position.x, position.y, position.z, 1.0));
+	lightPosition = vec3(light_matrix * vec4(fragPosition.x, fragPosition.y, fragPosition.z, 1.0));
+	viewPosition = vec3(viewSpace);
 	ShadowCoord = DepthBiasMVP * vec4(fragPosition, 1.0);
 }

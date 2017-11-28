@@ -19,7 +19,7 @@ uniform int textureOption;
 uniform mat4 textureMatrix;//for scaling uv and allow texture to scale
 uniform bool scaleUV;//only scale the when true
 
-uniform vec3 viewPosition;
+in vec3 viewPosition;
 
 // Fog uniforms
 uniform int fogOption;
@@ -90,6 +90,16 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     return shadow;
 } 
 
+struct DirLight {
+    vec3 position;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+	
+	float ambient_strength;
+};  
+uniform DirLight dirLight;
+
 struct PointLight {      
 
 	vec3 position;
@@ -97,6 +107,7 @@ struct PointLight {
     vec3 diffuse;
     vec3 specular;
 	
+	float ambient_strength;
 	float constant;
     float linear;
     float quadratic;
@@ -104,12 +115,29 @@ struct PointLight {
 #define NR_POINT_LIGHTS 26  
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 
-vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 lightColour, float shadow)
+vec3 CalcDirLight(DirLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow)
+{
+    vec3 lightDir = normalize(lightPosition - fragPos);
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+    // specular shading
+	float specular_strength = 0.5f;
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    // combine results
+    vec3 ambient  = light.ambient;
+    vec3 diffuse  = (1.0 - shadow) * light.diffuse  * diff * light.ambient_strength;
+    vec3 specular = (1.0 - shadow) * light.specular * spec * specular_strength;
+    return (ambient + diffuse + specular);
+}  
+
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow)
 {
     vec3 lightDir = normalize(light.position - fragPos);
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
     // specular shading
+    float specular_strength = 0.1f;
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
     // attenuation
@@ -117,9 +145,9 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, v
     float attenuation = 1.0 / (light.constant + light.linear * distance + 
   			     light.quadratic * (distance * distance));    
     // combine results
-    vec3 ambient  = light.ambient  * lightColour;
-    vec3 diffuse  = (1.0 - shadow) * light.diffuse  * diff * lightColour;
-    vec3 specular = (1.0 - shadow) * light.specular * spec * lightColour;
+    vec3 ambient  = light.ambient;
+    vec3 diffuse  = (1.0 - shadow) * light.diffuse  * diff  * light.ambient_strength;
+    vec3 specular = (1.0 - shadow) * light.specular * spec * specular_strength;
     ambient  *= attenuation;
     diffuse  *= attenuation;
     specular *= attenuation;
@@ -131,6 +159,10 @@ void main()
 	vec4 UV = vec4(outUV, 0.0f, 0.0f);//convert to vec4
 	vec4 newUV = textureMatrix * UV;//Scale the UV by x and y
 	vec2 lastUV = vec2(newUV);//convert to vec2
+	
+	vec3 finalColour;
+	vec3 lamp;
+	vec3 moon;
 	
 	vec3 norm = normalize(outNormal);
 	vec3 viewDir = normalize(viewPosition - fragPosition);
@@ -148,23 +180,22 @@ void main()
 	
     vec3 lightColour[26];
 	lightColour[0] = vec3(0.13333333f, 0.23921569f, 0.41960784f);
-	//lightColour[0] = vec3(1.0f, 1.0f, 1.0f);
+	//lightColour[0] = vec3(0.9f, 0.9f, 0.9f);
 	
 	for (int i = 1; i < 26; i++) {
 		lightColour[i] = vec3(0.81f, 0.64f, 0.07f);
 	}
 	
-	vec3 finalColour;
-	vec3 lamp;
-	
 	float shadow = 0.0f;
     //float shadow = ShadowCalculation(ShadowCoord);
 
+	moon = CalcDirLight(dirLight, norm, fragPosition, viewDir, shadow);
+	
 	//lamp = vec3(1.0f, 1.0f, 1.0f);
 	for(int i = 0; i < NR_POINT_LIGHTS; i++)
-        lamp += CalcPointLight(pointLights[i], norm, fragPosition, viewDir, lightColour[i], shadow);
+        lamp += CalcPointLight(pointLights[i], norm, fragPosition, viewDir, shadow);
 	
-	finalColour = lamp * cubeColour;
+	finalColour = lamp * cubeColour * moon;
 
 	if (drawingSkybox) {
 		color = texture(skybox, skyboxCoord);
