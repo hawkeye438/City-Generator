@@ -139,3 +139,25 @@ Controls (All controls are handle in Camera Class)
 
 --Shift+P--
 -Decrement fog density for linear method
+
+-----------
+---Light---
+-----------
+
+--X--
+-Increase light strength of the Sun
+
+--C--
+-Decrease light strength of the Sun
+
+--V--
+-Increase light strength of the Moon
+
+--B--
+-Decrease light strength of the Moon
+
+--N--
+-Increase light strength of the City Lights
+
+--M--
+-Decrease light strength of the City Lights
