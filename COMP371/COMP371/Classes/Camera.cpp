@@ -82,58 +82,39 @@ void Camera::checkLoopPos() {
 
 void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	float offset = 0.5f;
-	int value = 0;
-	//Camera Controls
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {//Forward
-		eye += mv_distance * center;
-		value = 1;
-		checkCollision(eye, offset, value);
-		checkTerrainCollision();
-		checkLoopPos();
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {//Backward
-		eye -= mv_distance * center;
-		value = 2;
-		checkCollision(eye, offset, value);
-		checkTerrainCollision();
-		checkLoopPos();
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {//left
-		eye -= glm::normalize(glm::cross(center, up)) * mv_distance;
-		value = 3;
-		checkCollision(eye, offset, value);
-		checkTerrainCollision();
-		checkLoopPos();
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {//right
-		eye += glm::normalize(glm::cross(center, up)) * mv_distance;
-		value = 4;
-		checkCollision(eye, offset, value);
-		checkTerrainCollision();
-		checkLoopPos();
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {//Up
-		eye.y += mv_distance;
-		value = 5;
-		checkCollision(eye, offset, value);
-		checkTerrainCollision();
-		checkLoopPos();
-	}
-	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {//Down
-		eye.y -= mv_distance;
-		value = 6;
-		checkCollision(eye, offset, value);
-		checkTerrainCollision();
-		checkLoopPos();
-	}
-
-	// Fog manipulation
 	if (action == GLFW_PRESS || action == GLFW_REPEAT)
 	{
+		float offset = 0.5f;
+		int moveValue = 0;
+
 		switch (key)
 		{
+		case GLFW_KEY_W: //Forward
+			eye += mv_distance * center;
+			moveValue = 1;
+			break;
+		case GLFW_KEY_S: //Backward
+			eye -= mv_distance * center;
+			moveValue = 2;
+			break;
+		case GLFW_KEY_A: //left
+			eye -= glm::normalize(glm::cross(center, up)) * mv_distance;
+			moveValue = 3;
+			break;
+		case GLFW_KEY_D: //right
+			eye += glm::normalize(glm::cross(center, up)) * mv_distance;
+			moveValue = 4;
+			break;
+		case GLFW_KEY_R: //Up
+			eye.y += mv_distance;
+			moveValue = 5;
+			break;
+		case GLFW_KEY_F: //Down
+			eye.y -= mv_distance;
+			moveValue = 6;
+			break;
+
+		// Fog manipulation
 		case GLFW_KEY_U: // Switch the current fog mode
 			if (currentFogMode == NONE)
 				if (mode & GLFW_MOD_SHIFT)
@@ -165,7 +146,7 @@ void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, i
 			fogEnd = glm::max(fogEnd, fogStart);
 			glUniform1f(fog_end, fogEnd);
 			break;
-		case GLFW_KEY_K: // Show debug info
+		case GLFW_KEY_K: // Show fog debug info
 			cout << "Fog debug info:" << endl;
 			cout << "\t- option (U): " << currentFogMode << endl;
 			cout << "\t- debug (J): " << boolalpha << fogDebugValue << noboolalpha << endl;
@@ -173,21 +154,21 @@ void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, i
 			cout << "\t- end (P): " << fogEnd << endl;
 			cout << "\t- density (I): " << fogDensity << endl;
 			break;
-		default:
-			break;
-		}
 
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-			glfwSetWindowShouldClose(window, 1);
-
-		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-		{
+		// Camera options controls
+		case GLFW_KEY_SPACE: // Lock mouse
 			mouseLocked = !mouseLocked;
 			glfwSetInputMode(window, GLFW_CURSOR, mouseLocked ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-		}
-
-		if (key == GLFW_KEY_BACKSPACE && action == GLFW_PRESS)
-		{
+			break;
+		case GLFW_KEY_KP_ADD: // Push far plane
+			current_far = glm::clamp(current_far + 5.0f, 5.0f, 500.0f);
+			setPerspective(current_fov, current_aspect, current_near, current_far, projection_location);
+			break;
+		case GLFW_KEY_KP_SUBTRACT: // Pull far plane
+			current_far = glm::clamp(current_far -5.0f, 5.0f, 500.0f);
+			setPerspective(current_fov, current_aspect, current_near, current_far, projection_location);
+			break;
+		case GLFW_KEY_BACKSPACE: // Show camera debug info 
 			cout << "Camera view options:" << endl;
 			int width, height;
 			glfwGetFramebufferSize(window, &width, &height);
@@ -196,6 +177,21 @@ void Camera::cameraKeys(GLFWwindow* window, int key, int scancode, int action, i
 			cout << "\t- Aspect: " << current_aspect << endl;
 			cout << "\t- Near plane: " << current_near << endl;
 			cout << "\t- Far plane: " << current_far << endl;
+			break;
+
+		// Window control
+		case GLFW_KEY_ESCAPE: // Close window
+			glfwSetWindowShouldClose(window, 1);
+			break;
+		default:
+			break;
+		}
+
+		if (moveValue)
+		{
+			checkCollision(eye, offset, moveValue);
+			checkTerrainCollision();
+			checkLoopPos();
 		}
 	}
 }

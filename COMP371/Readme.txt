@@ -161,3 +161,22 @@ Controls (All controls are handle in Camera Class)
 
 --M--
 -Decrease light strength of the City Lights
+
+
+------------
+---Camera---
+------------
+
+--KEYPAD ADD--
+-Increase light strength of the Sun
+
+--KEYPAD SUBSTRACT--
+-Decrease the distance of the far plane
+
+
+------------
+---Window---
+------------
+
+--ESCAPE--
+-Close the window and stop the program
