@@ -72,6 +72,7 @@ vec4 applyFog()
 	return vec4(mix(fogColour, vec3(color), fogFactor), color[3]);
 }
 
+//Shadow algorithm referenced from www.learnopengl.com
 float ShadowCalculation(vec4 fragPosLightSpace)
 {
     // perform perspective divide
@@ -90,6 +91,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     return shadow;
 } 
 
+//Light algorithms referenced from www.learnOpengl.com
 struct DirLight {
     vec3 position;
     vec3 ambient;
